@@ -1,0 +1,87 @@
+{
+  "orders": [
+    {
+      "id": "1",
+      "deviceType": "smartphone",
+      "model": "iPhone 13",
+      "client": {
+        "fullName": "Иванов Иван",
+        "phone": "+7 (999) 123-45-67"
+      },
+      "problemDescription": "Разбит экран, не включается",
+      "prepayment": 1000,
+      "masterComment": "Требуется замена дисплейного модуля. Проверка",
+      "status": "new",
+      "services": [
+        {
+          "id": "101",
+          "type": "part",
+          "name": "Дисплейный модуль iPhone 13",
+          "price": 15000,
+          "quantity": 1
+        },
+        {
+          "id": "102",
+          "type": "service",
+          "name": "Замена дисплея",
+          "price": 3000
+        }
+      ],
+      "createdAt": "2023-03-01T10:00:00.000Z",
+      "updatedAt": "2025-03-24T01:46:05.905Z",
+      "orderNumber": 1
+    },
+    {
+      "id": "2",
+      "deviceType": "laptop",
+      "model": "MacBook Pro 2019",
+      "client": {
+        "fullName": "Петров Петр",
+        "phone": "+7 (888) 765-43-21"
+      },
+      "problemDescription": "Не заряжается батарея",
+      "prepayment": 2000,
+      "masterComment": "Требуется диагностика",
+      "status": "in_progress",
+      "services": [],
+      "createdAt": "2023-03-02T14:30:00.000Z",
+      "updatedAt": "2023-03-02T15:45:00.000Z",
+      "orderNumber": 2
+    },
+    {
+      "client": {
+        "fullName": "1",
+        "phone": "89000000000"
+      },
+      "deviceType": "smartphone",
+      "model": "1",
+      "problemDescription": "",
+      "prepayment": 0,
+      "masterComment": "",
+      "status": "canceled",
+      "services": [],
+      "id": "441f881a-4704-4b80-8721-538a8d343b2a",
+      "createdAt": "2025-03-24T01:12:31.153Z",
+      "updatedAt": "2025-03-24T01:18:44.722Z",
+      "orderNumber": 3
+    },
+    {
+      "client": {
+        "fullName": "2",
+        "phone": "80000000000"
+      },
+      "deviceType": "computer",
+      "model": "2",
+      "problemDescription": "",
+      "prepayment": 0,
+      "masterComment": "",
+      "status": "new",
+      "services": [],
+      "id": "468b60ca-f291-4c49-85c6-5c9f5b6ba425",
+      "createdAt": "2025-03-24T01:19:22.261Z",
+      "updatedAt": "2025-03-24T01:19:22.261Z",
+      "orderNumber": 4
+    }
+  ],
+  "orderCounter": 4
+}
