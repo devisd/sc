@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import {
     Dialog,
     DialogTitle,
@@ -124,7 +124,7 @@ export default function NewOrderModal({ open, onClose }: NewOrderModalProps) {
         onClose();
     };
 
-    const handleClose = () => {
+    const handleClose = useCallback(() => {
         setErrors({});
         setFormData({
             clientName: '',
@@ -135,7 +135,7 @@ export default function NewOrderModal({ open, onClose }: NewOrderModalProps) {
             prepayment: 0,
         });
         onClose();
-    };
+    }, [onClose]);
 
     useEffect(() => {
         const handleEscapeKey = (event: KeyboardEvent) => {
@@ -148,7 +148,7 @@ export default function NewOrderModal({ open, onClose }: NewOrderModalProps) {
         return () => {
             document.removeEventListener('keydown', handleEscapeKey);
         };
-    }, [open]);
+    }, [open, handleClose]);
 
     useEffect(() => {
         if (open && closeButtonRef.current) {
