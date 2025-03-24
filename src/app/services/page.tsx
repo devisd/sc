@@ -165,50 +165,101 @@ export default function ServicesPage() {
                     <CircularProgress />
                 </Box>
             ) : (
-                <TableContainer component={Paper} elevation={2}>
-                    <Table>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>Название</TableCell>
-                                <TableCell>Тип</TableCell>
-                                <TableCell>Цена (₽)</TableCell>
-                                <TableCell align="right">Действия</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {services.map((service) => (
-                                <TableRow key={service.id}>
-                                    <TableCell component="th" scope="row">
-                                        {service.name}
-                                    </TableCell>
-                                    <TableCell>{service.type === 'service' ? 'Услуга' : 'Запчасть'}</TableCell>
-                                    <TableCell>{service.price} ₽</TableCell>
-                                    <TableCell align="right">
-                                        <IconButton
-                                            size="small"
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                handleOpenDialog('edit', service);
-                                            }}
-                                        >
-                                            <EditIcon fontSize="small" />
-                                        </IconButton>
-                                        <IconButton
-                                            size="small"
-                                            color="error"
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                handleConfirmDelete(service.id);
-                                            }}
-                                        >
-                                            <DeleteIcon fontSize="small" />
-                                        </IconButton>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
+                <Stack spacing={4}>
+                    {/* Таблица услуг */}
+                    <Box>
+                        <Typography variant="h5" sx={{ mb: 2 }}>Услуги</Typography>
+                        <TableContainer component={Paper} elevation={2}>
+                            <Table>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>Название</TableCell>
+                                        <TableCell>Цена (₽)</TableCell>
+                                        <TableCell align="right">Действия</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {services.filter(service => service.type === 'service').map(service => (
+                                        <TableRow key={service.id}>
+                                            <TableCell component="th" scope="row">
+                                                {service.name}
+                                            </TableCell>
+                                            <TableCell>{service.price} ₽</TableCell>
+                                            <TableCell align="right">
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        handleOpenDialog('edit', service);
+                                                    }}
+                                                >
+                                                    <EditIcon fontSize="small" />
+                                                </IconButton>
+                                                <IconButton
+                                                    size="small"
+                                                    color="error"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        handleConfirmDelete(service.id);
+                                                    }}
+                                                >
+                                                    <DeleteIcon fontSize="small" />
+                                                </IconButton>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </Box>
+
+                    {/* Таблица запчастей */}
+                    <Box>
+                        <Typography variant="h5" sx={{ mb: 2 }}>Запчасти</Typography>
+                        <TableContainer component={Paper} elevation={2}>
+                            <Table>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>Название</TableCell>
+                                        <TableCell>Цена (₽)</TableCell>
+                                        <TableCell align="right">Действия</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {services.filter(service => service.type === 'part').map(service => (
+                                        <TableRow key={service.id}>
+                                            <TableCell component="th" scope="row">
+                                                {service.name}
+                                            </TableCell>
+                                            <TableCell>{service.price} ₽</TableCell>
+                                            <TableCell align="right">
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        handleOpenDialog('edit', service);
+                                                    }}
+                                                >
+                                                    <EditIcon fontSize="small" />
+                                                </IconButton>
+                                                <IconButton
+                                                    size="small"
+                                                    color="error"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        handleConfirmDelete(service.id);
+                                                    }}
+                                                >
+                                                    <DeleteIcon fontSize="small" />
+                                                </IconButton>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </Box>
+                </Stack>
             )}
 
             {/* Диалог добавления/редактирования */}
