@@ -1,0 +1,27 @@
+.header {
+    @apply flex justify-between items-center mb-4;
+}
+
+.title {
+    @apply font-bold;
+
+    @media (max-width: 640px) {
+        @apply text-2xl mb-2;
+    }
+}
+
+.errorAlert {
+    @apply mb-4;
+}
+
+.orderList {
+    @apply space-y-4;
+}
+
+.orderCard {
+    @apply rounded-lg shadow p-4;
+
+    @media (max-width: 640px) {
+        @apply p-3;
+    }
+}

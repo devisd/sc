@@ -1,0 +1,15 @@
+.placeholder {
+    @apply w-10 h-10;
+}
+
+.toggleButton {
+    @apply w-10 h-10 flex items-center justify-center rounded-md bg-gray-100 text-gray-800;
+
+    :global(.dark) & {
+        @apply bg-gray-800 text-gray-200;
+    }
+}
+
+.icon {
+    @apply w-5 h-5;
+}

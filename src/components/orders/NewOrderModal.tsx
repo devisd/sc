@@ -1,35 +1,30 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import {
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    Button,
-    TextField,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
-    Stack,
-    Typography,
-    IconButton,
-    SelectChangeEvent,
-} from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
+
+import { CloseIcon } from '@/components/ui/icons';
 import { Order, DEVICE_TYPE_LABELS } from '@/lib/types';
 import { useOrderStore } from '@/lib/stores/orderStore';
+import { Dialog, DialogActions, DialogContent, DialogTitle, Typography, Button } from '../ui/elements';
+import styles from './NewOrderModal.module.scss';
 
 type DeviceType = Order['deviceType'];
 
+/**
+ * Интерфейс пропсов модального окна создания заказа
+ */
 interface NewOrderModalProps {
+    /** Флаг открытия модального окна */
     open: boolean;
+    /** Обработчик закрытия модального окна */
     onClose: () => void;
 }
 
-export default function NewOrderModal({ open, onClose }: NewOrderModalProps) {
-    const { addOrder } = useOrderStore();
+/**
+ * Компонент модального окна создания нового заказа
+ */
+export const NewOrderModal: React.FC<NewOrderModalProps> = ({ open, onClose }: NewOrderModalProps) => {
+    const { addOrder, isLoading } = useOrderStore();
     const [formData, setFormData] = useState({
         clientName: '',
         clientPhone: '',
@@ -39,19 +34,23 @@ export default function NewOrderModal({ open, onClose }: NewOrderModalProps) {
         prepayment: 0,
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showPrepayment, setShowPrepayment] = useState(false);
     const closeButtonRef = useRef<HTMLButtonElement>(null);
-    const cancelButtonRef = useRef<HTMLButtonElement>(null);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
+    /**
+     * Обработчик изменения полей формы
+     */
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | { name?: string; value: unknown }>) => {
         const { name, value } = e.target;
         if (!name) return;
 
         setFormData({
             ...formData,
-            [name]: value,
+            [name]: name === 'prepayment' && typeof value === 'string' ? Number(value) : value,
         });
 
-        // Clear error when field is edited
+        // Очищаем ошибку при редактировании поля
         if (errors[name]) {
             setErrors({
                 ...errors,
@@ -60,7 +59,10 @@ export default function NewOrderModal({ open, onClose }: NewOrderModalProps) {
         }
     };
 
-    const handleSelectChange = (e: SelectChangeEvent<DeviceType>) => {
+    /**
+     * Обработчик изменения выпадающих списков
+     */
+    const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const { name, value } = e.target;
         if (!name) return;
 
@@ -70,6 +72,32 @@ export default function NewOrderModal({ open, onClose }: NewOrderModalProps) {
         });
     };
 
+    /**
+     * Обработчик изменения чекбокса предоплаты
+     */
+    const handlePrepaymentToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const isChecked = e.target.checked;
+        setShowPrepayment(isChecked);
+
+        if (!isChecked) {
+            // Если предоплата отключена, сбрасываем значение и ошибки
+            setFormData({
+                ...formData,
+                prepayment: 0
+            });
+
+            if (errors.prepayment) {
+                setErrors({
+                    ...errors,
+                    prepayment: ''
+                });
+            }
+        }
+    };
+
+    /**
+     * Валидация формы перед отправкой
+     */
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
 
@@ -87,7 +115,7 @@ export default function NewOrderModal({ open, onClose }: NewOrderModalProps) {
             newErrors.model = 'Введите модель устройства';
         }
 
-        if (formData.prepayment < 0) {
+        if (showPrepayment && formData.prepayment < 0) {
             newErrors.prepayment = 'Предоплата не может быть отрицательной';
         }
 
@@ -95,24 +123,41 @@ export default function NewOrderModal({ open, onClose }: NewOrderModalProps) {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = () => {
+    /**
+     * Обработчик отправки формы
+     */
+    const handleSubmit = async () => {
         if (!validateForm()) return;
 
-        addOrder({
-            client: {
-                fullName: formData.clientName,
-                phone: formData.clientPhone,
-            },
-            deviceType: formData.deviceType,
-            model: formData.model,
-            problemDescription: formData.problemDescription,
-            prepayment: formData.prepayment,
-            masterComment: '',
-            status: 'new',
-            services: [],
-        });
+        try {
+            setIsSubmitting(true);
+            await addOrder({
+                clientName: formData.clientName,
+                clientPhone: formData.clientPhone,
+                clientEmail: '',
+                deviceType: formData.deviceType,
+                deviceModel: formData.model,
+                serialNumber: '',
+                issueDescription: formData.problemDescription,
+                prepayment: showPrepayment ? formData.prepayment : 0,
+                masterComment: '',
+                status: 'new',
+                services: [],
+            });
 
-        // Reset form and close modal
+            // Сбрасываем форму и закрываем модальное окно
+            resetFormAndClose();
+        } catch (error) {
+            console.error('Ошибка при создании заказа:', error);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    /**
+     * Сброс формы и закрытие модального окна
+     */
+    const resetFormAndClose = () => {
         setFormData({
             clientName: '',
             clientPhone: '',
@@ -121,22 +166,19 @@ export default function NewOrderModal({ open, onClose }: NewOrderModalProps) {
             problemDescription: '',
             prepayment: 0,
         });
+        setErrors({});
+        setShowPrepayment(true);
         onClose();
     };
 
+    /**
+     * Обработчик закрытия модального окна
+     */
     const handleClose = useCallback(() => {
-        setErrors({});
-        setFormData({
-            clientName: '',
-            clientPhone: '',
-            deviceType: 'smartphone' as DeviceType,
-            model: '',
-            problemDescription: '',
-            prepayment: 0,
-        });
-        onClose();
+        resetFormAndClose();
     }, [onClose]);
 
+    // Обработка нажатия клавиши Escape
     useEffect(() => {
         const handleEscapeKey = (event: KeyboardEvent) => {
             if (event.key === 'Escape' && open) {
@@ -150,6 +192,7 @@ export default function NewOrderModal({ open, onClose }: NewOrderModalProps) {
         };
     }, [open, handleClose]);
 
+    // Установка фокуса на кнопку закрытия при открытии модального окна
     useEffect(() => {
         if (open && closeButtonRef.current) {
             setTimeout(() => {
@@ -164,147 +207,166 @@ export default function NewOrderModal({ open, onClose }: NewOrderModalProps) {
             onClose={handleClose}
             fullWidth
             maxWidth="sm"
-            aria-labelledby="order-dialog-title"
-            aria-modal={true}
-            role="dialog"
         >
-            <DialogTitle id="order-dialog-title">
-                <Typography variant="h6" component="span">Новый заказ</Typography>
-                <IconButton
-                    onClick={handleClose}
-                    aria-label="Закрыть"
-                    sx={{ position: 'absolute', right: 8, top: 8 }}
-                    ref={closeButtonRef}
-                >
-                    <CloseIcon />
-                </IconButton>
+            <DialogTitle>
+                <div className={styles.dialogHeader}>
+                    <Typography variant="h3">Новый заказ</Typography>
+                    <button
+                        onClick={handleClose}
+                        aria-label="Закрыть"
+                        className={styles.closeButton}
+                        ref={closeButtonRef}
+                    >
+                        <CloseIcon className={styles.closeIcon} />
+                    </button>
+                </div>
             </DialogTitle>
-            <DialogContent dividers>
-                <Stack spacing={3} sx={{ mt: 1 }}>
-                    <Typography variant="subtitle1" fontWeight="bold">
-                        Информация о клиенте
-                    </Typography>
-                    <TextField
-                        label="ФИО клиента"
-                        name="clientName"
-                        value={formData.clientName}
-                        onChange={handleChange}
-                        fullWidth
-                        error={!!errors.clientName}
-                        helperText={errors.clientName}
-                        required
-                        aria-required="true"
-                        aria-invalid={!!errors.clientName}
-                        aria-describedby={errors.clientName ? "clientName-error" : undefined}
-                        id="clientName"
-                    />
-                    <TextField
-                        label="Телефон"
-                        name="clientPhone"
-                        value={formData.clientPhone}
-                        onChange={handleChange}
-                        fullWidth
-                        error={!!errors.clientPhone}
-                        helperText={errors.clientPhone || 'Пример: +79991234567'}
-                        required
-                        aria-required="true"
-                        aria-invalid={!!errors.clientPhone}
-                        aria-describedby={errors.clientPhone ? "clientPhone-error" : undefined}
-                        id="clientPhone"
-                    />
+            <DialogContent>
+                <div className={styles.formContainer}>
+                    <div className={styles.formField}>
+                        <label htmlFor="clientName" className={styles.label}>
+                            ФИО клиента
+                        </label>
+                        <input
+                            type="text"
+                            id="clientName"
+                            name="clientName"
+                            value={formData.clientName}
+                            onChange={handleChange}
+                            className={`${styles.input} ${errors.clientName ? styles.inputError : ''}`}
+                            aria-required="true"
+                            aria-invalid={!!errors.clientName}
+                        />
+                        {errors.clientName && (
+                            <p className={styles.errorText}>{errors.clientName}</p>
+                        )}
+                    </div>
 
-                    <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>
-                        Информация об устройстве
-                    </Typography>
-                    <FormControl fullWidth>
-                        <InputLabel id="device-type-label">Тип устройства</InputLabel>
-                        <Select
+                    <div className={styles.formField}>
+                        <label htmlFor="clientPhone" className={styles.label}>
+                            Телефон
+                        </label>
+                        <input
+                            type="text"
+                            id="clientPhone"
+                            name="clientPhone"
+                            value={formData.clientPhone}
+                            onChange={handleChange}
+                            placeholder="+79991234567"
+                            className={`${styles.input} ${errors.clientPhone ? styles.inputError : ''}`}
+                            aria-required="true"
+                            aria-invalid={!!errors.clientPhone}
+                        />
+                        {errors.clientPhone ? (
+                            <p className={styles.errorText}>{errors.clientPhone}</p>
+                        ) : (
+                            <p className={styles.helpText}>Пример: +79991234567</p>
+                        )}
+                    </div>
+
+                    <div className={styles.formField}>
+                        <label htmlFor="deviceType" className={styles.label}>
+                            Тип устройства
+                        </label>
+                        <select
+                            id="deviceType"
                             name="deviceType"
                             value={formData.deviceType}
-                            label="Тип устройства"
                             onChange={handleSelectChange}
-                            labelId="device-type-label"
-                            id="deviceType"
-                            aria-labelledby="device-type-label"
+                            className={styles.select}
                         >
                             {Object.entries(DEVICE_TYPE_LABELS).map(([value, label]) => (
-                                <MenuItem key={value} value={value}>
+                                <option key={value} value={value}>
                                     {label}
-                                </MenuItem>
+                                </option>
                             ))}
-                        </Select>
-                    </FormControl>
-                    <TextField
-                        label="Модель устройства"
-                        name="model"
-                        value={formData.model}
-                        onChange={handleChange}
-                        fullWidth
-                        error={!!errors.model}
-                        helperText={errors.model}
-                        required
-                        aria-required="true"
-                        aria-invalid={!!errors.model}
-                        aria-describedby={errors.model ? "model-error" : undefined}
-                        id="model"
-                    />
-                    <TextField
-                        label="Описание проблемы"
-                        name="problemDescription"
-                        value={formData.problemDescription}
-                        onChange={handleChange}
-                        fullWidth
-                        multiline
-                        rows={3}
-                        id="problemDescription"
-                        aria-label="Описание проблемы"
-                    />
+                        </select>
+                    </div>
 
-                    <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 2 }}>
-                        Финансовая информация
-                    </Typography>
-                    <TextField
-                        label="Предоплата (₽)"
-                        name="prepayment"
-                        type="number"
-                        value={formData.prepayment}
-                        onChange={handleChange}
-                        fullWidth
-                        error={!!errors.prepayment}
-                        helperText={errors.prepayment}
-                        id="prepayment"
-                        aria-invalid={!!errors.prepayment}
-                        aria-describedby={errors.prepayment ? "prepayment-error" : undefined}
-                        InputProps={{
-                            endAdornment: '₽',
-                            inputProps: {
-                                min: 0,
-                                'aria-valuemin': 0
-                            }
-                        }}
-                    />
-                </Stack>
+                    <div className={styles.formField}>
+                        <label htmlFor="model" className={styles.label}>
+                            Модель устройства
+                        </label>
+                        <input
+                            type="text"
+                            id="model"
+                            name="model"
+                            value={formData.model}
+                            onChange={handleChange}
+                            className={`${styles.input} ${errors.model ? styles.inputError : ''}`}
+                            aria-required="true"
+                            aria-invalid={!!errors.model}
+                        />
+                        {errors.model && (
+                            <p className={styles.errorText}>{errors.model}</p>
+                        )}
+                    </div>
+
+                    <div className={styles.formField}>
+                        <label htmlFor="problemDescription" className={styles.label}>
+                            Описание проблемы
+                        </label>
+                        <textarea
+                            id="problemDescription"
+                            name="problemDescription"
+                            value={formData.problemDescription}
+                            onChange={handleChange}
+                            rows={3}
+                            className={styles.textarea}
+                        />
+                    </div>
+
+                    <div className={styles.formField}>
+                        <div className={styles.prepaymentHeader}>
+                            <label htmlFor="prepaymentToggle" className={styles.checkboxLabel}>
+                                <input
+                                    type="checkbox"
+                                    id="prepaymentToggle"
+                                    checked={showPrepayment}
+                                    onChange={handlePrepaymentToggle}
+                                    className={styles.checkbox}
+                                />
+                                <span className={styles.label}>Предоплата (₽)</span>
+                            </label>
+                        </div>
+
+                        {showPrepayment && (
+                            <>
+                                <input
+                                    type="number"
+                                    id="prepayment"
+                                    name="prepayment"
+                                    value={formData.prepayment}
+                                    onChange={handleChange}
+                                    min="0"
+                                    className={`${styles.input} ${errors.prepayment ? styles.inputError : ''}`}
+                                />
+                                {errors.prepayment && (
+                                    <p className={styles.errorText}>{errors.prepayment}</p>
+                                )}
+                            </>
+                        )}
+                    </div>
+                </div>
             </DialogContent>
             <DialogActions>
                 <Button
-                    onClick={handleClose}
+                    variant="text"
                     color="inherit"
-                    tabIndex={0}
-                    type="button"
-                    ref={cancelButtonRef}
+                    onClick={handleClose}
+                    disabled={isSubmitting}
                 >
                     Отмена
                 </Button>
                 <Button
-                    onClick={handleSubmit}
                     variant="contained"
                     color="primary"
-                    tabIndex={0}
-                    type="button"
+                    onClick={handleSubmit}
+                    disabled={isSubmitting}
                 >
-                    Создать заказ
+                    {isSubmitting ? 'Создание...' : 'Создать заказ'}
                 </Button>
             </DialogActions>
         </Dialog>
     );
-} 
+}; 

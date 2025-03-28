@@ -1,0 +1,39 @@
+.formControl {
+    @apply mb-4;
+}
+
+.fullWidth {
+    @apply w-full;
+}
+
+.inputLabel {
+    @apply block text-sm font-medium text-gray-700 mb-1;
+
+    :global(.dark) & {
+        @apply text-gray-300;
+    }
+}
+
+.select {
+    @apply py-2 px-3 border rounded-md shadow-sm focus:outline-none focus:ring-1;
+}
+
+.selectError {
+    @apply border-red-500 focus:ring-red-500;
+}
+
+.selectNormal {
+    @apply border-gray-300 focus:ring-blue-500 focus:border-blue-500;
+
+    :global(.dark) & {
+        @apply border-gray-600 bg-gray-700 text-white;
+    }
+}
+
+.menuItem {
+    @apply py-1;
+
+    :global(.dark) & {
+        @apply bg-gray-700 text-white;
+    }
+}

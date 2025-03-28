@@ -1,48 +1,38 @@
-import { OrderStatus, ORDER_STATUS_LABELS } from '@/lib/types';
-import Chip from '@mui/material/Chip';
-import { ChipProps } from '@mui/material';
+'use client';
+
+import React from 'react';
+import { OrderStatus } from '@/lib/types';
+import styles from './StatusBadge.module.scss';
+import clsx from 'clsx';
 
 interface StatusBadgeProps {
     status: OrderStatus;
+    className?: string;
+    isStatic?: boolean;
 }
 
-// Функция для определения цвета чипа на основе статуса
-const getStatusColor = (status: OrderStatus): ChipProps['color'] => {
-    switch (status) {
-        case 'new':
-            return 'info';
-        case 'in_progress':
-            return 'warning';
-        case 'waiting_parts':
-            return 'secondary';
-        case 'ready':
-            return 'primary';
-        case 'completed':
-            return 'success';
-        case 'canceled':
-            return 'error';
-        default:
-            return 'default';
-    }
-}
+const statusData: Record<OrderStatus, { label: string; variant: OrderStatus }> = {
+    new: { label: 'Новый', variant: 'new' },
+    in_progress: { label: 'В работе', variant: 'in_progress' },
+    waiting_parts: { label: 'Ожидание запчастей', variant: 'waiting_parts' },
+    ready: { label: 'Готов', variant: 'ready' },
+    completed: { label: 'Завершен', variant: 'completed' },
+    canceled: { label: 'Отменен', variant: 'canceled' },
+};
 
-export const StatusBadge = ({ status }: StatusBadgeProps) => {
-    const colorType = getStatusColor(status);
+export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className = '', isStatic = false }) => {
+    const { label, variant } = statusData[status];
 
     return (
-        <Chip
-            label={ORDER_STATUS_LABELS[status]}
-            color={colorType}
-            size="small"
-            sx={{
-                fontWeight: 'medium',
-                '&.MuiChip-colorInfo': { bgcolor: 'rgb(191 219 254)' },
-                '&.MuiChip-colorWarning': { bgcolor: 'rgb(254 240 138)' },
-                '&.MuiChip-colorSecondary': { bgcolor: 'rgb(233 213 255)' },
-                '&.MuiChip-colorPrimary': { bgcolor: 'rgb(74 222 128)' },
-                '&.MuiChip-colorSuccess': { bgcolor: 'rgb(22 163 74)' },
-                '&.MuiChip-colorError': { bgcolor: 'rgb(248 113 113)' },
-            }}
-        />
+        <span
+            className={clsx(
+                styles.badge,
+                styles[variant],
+                { [styles.static]: isStatic },
+                className
+            )}
+        >
+            {label}
+        </span>
     );
 }; 

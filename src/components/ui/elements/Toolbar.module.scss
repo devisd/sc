@@ -1,0 +1,15 @@
+.toolbar {
+    @apply flex items-center;
+}
+
+.regular {
+    @apply py-2;
+}
+
+.dense {
+    @apply py-1;
+}
+
+.withGutters {
+    @apply px-4;
+}

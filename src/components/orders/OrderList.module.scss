@@ -1,0 +1,142 @@
+// Стили контейнера списка
+.container {
+    @apply w-full max-w-7xl mx-auto;
+}
+
+// Стили для карточки заказа
+.orderCard {
+    @apply hover:shadow-card-hover transition-shadow duration-200 dark:border-gray-700;
+}
+
+// Поле поиска в стиле MUI
+.searchContainer {
+    @apply relative w-full;
+}
+
+.searchInput {
+    @apply p-2 pl-10 w-full border border-gray-300 rounded-input focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white;
+}
+
+.searchIcon {
+    @apply absolute left-3 top-1/2 -translate-y-1/2 text-tertiary dark:text-gray-500;
+}
+
+// Стили кнопок фильтра в стиле MUI
+.filterButton {
+    @apply text-label whitespace-nowrap;
+}
+
+// Контейнер для пустого списка
+.emptyContainer {
+    @apply flex justify-center items-center min-h-[150px] bg-gray-50 rounded-card dark:bg-gray-800;
+}
+
+// Стили для карточки заказа
+.cardContent {
+    @apply p-card-padding;
+}
+
+// Грид сетка
+.orderGrid {
+    @apply grid grid-cols-1 sm:grid-cols-12 gap-4;
+}
+
+// Левая колонка
+.leftColumn {
+    @apply sm:col-span-7;
+}
+
+// Правая колонка
+.rightColumn {
+    @apply sm:col-span-5;
+}
+
+// Контейнер информации
+.infoContainer {
+    @apply space-y-2;
+}
+
+// Заголовок с номером заказа
+.orderHeader {
+    @apply flex items-center gap-2;
+}
+
+// Заголовок заказа
+.orderTitle {
+    @apply font-medium text-primary dark:text-primary;
+}
+
+// Номер телефона
+.phoneNumber {
+    @apply text-label text-secondary dark:text-secondary;
+}
+
+// Метка типа устройства
+.deviceLabel {
+    @apply text-label text-secondary dark:text-secondary;
+}
+
+// Модель устройства
+.deviceModel {
+    @apply text-label font-medium text-primary dark:text-primary;
+}
+
+// Информация о создании заказа
+.orderDate {
+    @apply text-label text-secondary dark:text-secondary;
+}
+
+// Контейнер с правой информацией
+.orderInfo {
+    @apply flex flex-col space-y-2 xs:items-start sm:items-end sm:text-right mt-2 sm:mt-0;
+}
+
+// Стиль для суммы предоплаты
+.prepayment {
+    @apply text-body font-medium text-primary dark:text-primary;
+}
+
+// Стиль для информации об услугах
+.servicesInfo {
+    @apply text-label text-indigo-600 dark:text-indigo-400;
+}
+
+// Контейнер фильтров
+.filterContainer {
+    @apply grid grid-cols-1 sm:grid-cols-12 gap-4 mb-6;
+}
+
+// Контейнер поиска
+.searchColumnContainer {
+    @apply sm:col-span-4;
+}
+
+// Контейнер для кнопок фильтров
+.filtersColumnContainer {
+    @apply sm:col-span-8;
+}
+
+// Обертка для кнопок фильтров
+.filtersWrapper {
+    @apply flex flex-wrap overflow-x-auto gap-2 py-1;
+}
+
+// Контейнер списка заказов
+.ordersContainer {
+    @apply space-y-3;
+}
+
+// Стиль для разделителя
+.divider {
+    @apply mb-4 border-gray-200 dark:border-gray-700;
+}
+
+// Стиль для текста о лимите отображения
+.limitText {
+    @apply text-tertiary dark:text-secondary;
+}
+
+// Контейнер для центрирования сообщения о лимите
+.limitContainer {
+    @apply text-center mt-4;
+}

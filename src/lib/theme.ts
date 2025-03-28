@@ -1,36 +1,157 @@
-import { createTheme } from '@mui/material/styles';
+// Определение переменных темы для всего приложения
 
-const theme = createTheme({
+export interface Theme {
     palette: {
         primary: {
-            main: '#1976d2', // синий цвет
+            main: string;
+            light: string;
+            dark: string;
+            contrastText: string;
+        };
+        secondary: {
+            main: string;
+            light: string;
+            dark: string;
+            contrastText: string;
+        };
+        error: {
+            main: string;
+            light: string;
+            dark: string;
+            contrastText: string;
+        };
+        warning: {
+            main: string;
+            light: string;
+            dark: string;
+            contrastText: string;
+        };
+        info: {
+            main: string;
+            light: string;
+            dark: string;
+            contrastText: string;
+        };
+        success: {
+            main: string;
+            light: string;
+            dark: string;
+            contrastText: string;
+        };
+        text: {
+            primary: string;
+            secondary: string;
+            disabled: string;
+        };
+        background: {
+            default: string;
+            paper: string;
+        };
+        action: {
+            active: string;
+            hover: string;
+            selected: string;
+            disabled: string;
+            disabledBackground: string;
+        };
+    };
+    typography: {
+        fontFamily: string;
+        fontSize: number;
+        fontWeightLight: number;
+        fontWeightRegular: number;
+        fontWeightMedium: number;
+        fontWeightBold: number;
+        h1: {
+            fontSize: string;
+            fontWeight: number;
+        };
+        h2: {
+            fontSize: string;
+            fontWeight: number;
+        };
+        h3: {
+            fontSize: string;
+            fontWeight: number;
+        };
+        body1: {
+            fontSize: string;
+        };
+        body2: {
+            fontSize: string;
+        };
+        button: {
+            textTransform: 'none' | 'capitalize' | 'uppercase' | 'lowercase';
+        };
+    };
+    shape: {
+        borderRadius: number;
+    };
+    spacing: (factor: number) => number;
+}
+
+const theme: Theme = {
+    palette: {
+        primary: {
+            main: '#1976d2',
             light: '#42a5f5',
             dark: '#1565c0',
+            contrastText: '#ffffff',
         },
         secondary: {
-            main: '#f50057', // розовый цвет
+            main: '#f50057',
             light: '#ff4081',
             dark: '#c51162',
+            contrastText: '#ffffff',
         },
         error: {
-            main: '#f44336', // красный для отмененных заказов
+            main: '#f44336',
+            light: '#e57373',
+            dark: '#d32f2f',
+            contrastText: '#ffffff',
         },
         warning: {
-            main: '#ff9800', // оранжевый для заказов в работе
+            main: '#ff9800',
+            light: '#ffb74d',
+            dark: '#f57c00',
+            contrastText: 'rgba(0, 0, 0, 0.87)',
         },
         info: {
-            main: '#2196f3', // синий для новых заказов
+            main: '#2196f3',
+            light: '#64b5f6',
+            dark: '#1976d2',
+            contrastText: '#ffffff',
         },
         success: {
-            main: '#4caf50', // зеленый для выполненных заказов
+            main: '#4caf50',
+            light: '#81c784',
+            dark: '#388e3c',
+            contrastText: 'rgba(0, 0, 0, 0.87)',
+        },
+        text: {
+            primary: 'rgba(0, 0, 0, 0.87)',
+            secondary: 'rgba(0, 0, 0, 0.6)',
+            disabled: 'rgba(0, 0, 0, 0.38)',
         },
         background: {
             default: '#f5f5f5',
             paper: '#ffffff',
         },
+        action: {
+            active: 'rgba(0, 0, 0, 0.54)',
+            hover: 'rgba(0, 0, 0, 0.04)',
+            selected: 'rgba(0, 0, 0, 0.08)',
+            disabled: 'rgba(0, 0, 0, 0.26)',
+            disabledBackground: 'rgba(0, 0, 0, 0.12)',
+        },
     },
     typography: {
         fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+        fontSize: 14,
+        fontWeightLight: 300,
+        fontWeightRegular: 400,
+        fontWeightMedium: 500,
+        fontWeightBold: 700,
         h1: {
             fontSize: '2rem',
             fontWeight: 600,
@@ -43,27 +164,20 @@ const theme = createTheme({
             fontSize: '1.25rem',
             fontWeight: 600,
         },
+        body1: {
+            fontSize: '1rem',
+        },
+        body2: {
+            fontSize: '0.875rem',
+        },
         button: {
             textTransform: 'none',
         },
     },
-    components: {
-        MuiButton: {
-            styleOverrides: {
-                root: {
-                    borderRadius: 8,
-                },
-            },
-        },
-        MuiCard: {
-            styleOverrides: {
-                root: {
-                    borderRadius: 12,
-                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.08)',
-                },
-            },
-        },
+    shape: {
+        borderRadius: 4,
     },
-});
+    spacing: (factor: number) => 8 * factor,
+};
 
 export default theme; 

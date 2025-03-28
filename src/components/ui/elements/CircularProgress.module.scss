@@ -1,0 +1,81 @@
+.circularProgress {
+    @apply inline-block;
+}
+
+// Цвета
+.primary {
+    @apply text-blue-600;
+
+    :global(.dark) & {
+        @apply text-blue-500;
+    }
+}
+
+.secondary {
+    @apply text-purple-600;
+
+    :global(.dark) & {
+        @apply text-purple-500;
+    }
+}
+
+.success {
+    @apply text-green-600;
+
+    :global(.dark) & {
+        @apply text-green-500;
+    }
+}
+
+.error {
+    @apply text-red-600;
+
+    :global(.dark) & {
+        @apply text-red-500;
+    }
+}
+
+.info {
+    @apply text-sky-600;
+
+    :global(.dark) & {
+        @apply text-sky-500;
+    }
+}
+
+.warning {
+    @apply text-amber-600;
+
+    :global(.dark) & {
+        @apply text-amber-500;
+    }
+}
+
+.inherit {
+    @apply text-current;
+}
+
+// Анимация
+.indeterminate {
+    @apply animate-[spin_1.4s_linear_infinite];
+}
+
+.determinate {
+    @apply animate-none;
+}
+
+.circle {
+    @apply stroke-current;
+}
+
+.backgroundCircle {
+    @apply opacity-20 stroke-current;
+}
+
+.dashedCircle {
+    @apply stroke-current;
+
+    &.indeterminate {
+        @apply animate-[circular-dash_1.4s_ease-in-out_infinite];
+    }
+}

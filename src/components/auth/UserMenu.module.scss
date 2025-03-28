@@ -1,0 +1,111 @@
+.loadingPlaceholder {
+    @apply w-8 h-8 rounded-full bg-gray-200 animate-pulse;
+
+    :global(.dark) & {
+        @apply bg-gray-700;
+    }
+}
+
+.authLinks {
+    @apply flex items-center space-x-3;
+}
+
+.authLinksMobile {
+    @apply flex-col space-x-0 space-y-2 w-full mt-2;
+}
+
+.loginLink {
+    @apply text-sm text-blue-600 hover:text-blue-800;
+
+    :global(.dark) & {
+        @apply text-blue-400 hover:text-blue-300;
+    }
+
+    .authLinksMobile & {
+        @apply block w-full text-center py-2;
+    }
+}
+
+.registerLink {
+    @apply text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700;
+
+    :global(.dark) & {
+        @apply bg-blue-500 hover:bg-blue-600;
+    }
+
+    .authLinksMobile & {
+        @apply block w-full text-center py-2;
+    }
+}
+
+.container {
+    @apply relative;
+}
+
+.containerMobile {
+    @apply w-full mb-2;
+}
+
+.menuButton {
+    @apply flex items-center space-x-2 py-1 px-2 rounded-full hover:bg-gray-100;
+
+    :global(.dark) & {
+        @apply hover:bg-gray-800;
+    }
+}
+
+.menuButtonMobile {
+    @apply w-full justify-center py-2;
+}
+
+.avatar {
+    @apply flex items-center justify-center w-8 h-8 bg-blue-500 text-white rounded-full font-medium;
+
+    img {
+        @apply w-full h-full rounded-full object-cover;
+    }
+}
+
+.userName {
+    @apply text-sm font-medium text-gray-700;
+
+    :global(.dark) & {
+        @apply text-gray-200;
+    }
+}
+
+.dropdown {
+    @apply absolute right-0 mt-1 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 z-50;
+
+    :global(.dark) & {
+        @apply bg-gray-800 ring-gray-700;
+    }
+}
+
+.dropdownMobile {
+    @apply static w-full shadow-none ring-0 mt-2;
+
+    :global(.dark) & {
+        @apply ring-0;
+    }
+}
+
+.dropdownMenu {
+    @apply py-1;
+}
+
+.menuItem {
+    @apply block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100;
+
+    :global(.dark) & {
+        @apply text-gray-200 hover:bg-gray-700;
+    }
+}
+
+.logoutButton {
+    @apply w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100;
+
+    :global(.dark) & {
+        @apply text-red-400 hover:bg-gray-700;
+    }
+}

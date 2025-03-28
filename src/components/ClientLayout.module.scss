@@ -1,0 +1,95 @@
+.header {
+    @apply bg-white shadow;
+
+    :global(.dark) & {
+        @apply bg-gray-900;
+    }
+}
+
+.headerContainer {
+    @apply mx-auto px-4 w-full max-w-7xl;
+}
+
+.headerContent {
+    @apply flex items-center justify-between h-16;
+
+    @media (max-width: 768px) {
+        @apply flex-col h-auto py-2;
+    }
+}
+
+.logoContainer {
+    @apply flex items-center;
+
+    @media (max-width: 768px) {
+        @apply w-full mb-2;
+    }
+
+    @media (max-width: 992px) {
+        @apply flex-col;
+    }
+}
+
+.logoWrapper {
+    @apply flex items-center justify-between w-full;
+}
+
+.mobileControls {
+    @apply flex items-center space-x-2;
+}
+
+.logo {
+    @apply text-xl font-bold text-gray-900;
+
+    :global(.dark) & {
+        @apply text-white;
+    }
+
+    @media (max-width: 768px) {
+        @apply mb-0;
+    }
+}
+
+.nav {
+    @apply ml-10;
+
+    @media (max-width: 992px) {
+        @apply hidden;
+    }
+}
+
+.navLinks {
+    @apply flex space-x-4;
+
+    @media (max-width: 768px) {
+        @apply justify-center space-x-2;
+    }
+}
+
+.navLink {
+    @apply px-3 py-2 text-gray-700 rounded-md flex-none hover:bg-gray-100;
+
+    :global(.dark) & {
+        @apply text-gray-300 hover:bg-gray-800;
+    }
+
+    @media (max-width: 768px) {
+        @apply px-2 py-1 text-sm;
+    }
+}
+
+.rightSide {
+    @apply flex items-center space-x-4;
+
+    @media (max-width: 768px) {
+        @apply w-full justify-center mt-2;
+    }
+}
+
+.mainContainer {
+    @apply mx-auto px-4 py-4 w-full max-w-7xl;
+
+    @media (max-width: 768px) {
+        @apply px-2 py-2;
+    }
+}

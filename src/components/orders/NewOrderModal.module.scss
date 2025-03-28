@@ -1,0 +1,123 @@
+.dialogHeader {
+    @apply flex justify-between items-center;
+}
+
+.closeButton {
+    @apply p-1 rounded-full hover:bg-gray-100;
+
+    :global(.dark) & {
+        @apply hover:bg-gray-800;
+    }
+}
+
+.closeIcon {
+    @apply w-5 h-5;
+}
+
+.formContainer {
+    @apply space-y-3 mt-1;
+
+    @media (max-width: 640px) {
+        @apply space-y-2;
+    }
+}
+
+.sectionTitle {
+    @apply font-bold mt-4 mb-2;
+
+    &:first-child {
+        @apply mt-0;
+    }
+
+    @media (max-width: 640px) {
+        @apply text-lg;
+    }
+}
+
+.formField {
+    @apply mb-4;
+
+    @media (max-width: 640px) {
+        @apply mb-3;
+    }
+}
+
+.label {
+    @apply block text-sm font-bold text-gray-700 mb-1;
+
+    :global(.dark) & {
+        @apply text-gray-300;
+    }
+}
+
+.prepaymentHeader {
+    @apply flex items-center mb-2;
+}
+
+.checkboxLabel {
+    @apply flex cursor-pointer text-sm font-bold text-gray-700;
+
+    :global(.dark) & {
+        @apply text-gray-300;
+    }
+}
+
+.checkbox {
+    @apply mr-2 h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500;
+
+    :global(.dark) & {
+        @apply border-gray-600 bg-gray-700;
+    }
+}
+
+.input {
+    @apply w-full p-2 border border-gray-300 rounded-md;
+
+    :global(.dark) & {
+        @apply border-gray-600 bg-gray-700 text-white;
+    }
+
+    @media (max-width: 640px) {
+        @apply p-1.5 text-sm;
+    }
+}
+
+.textarea {
+    @apply w-full p-2 border border-gray-300 rounded-md;
+
+    :global(.dark) & {
+        @apply border-gray-600 bg-gray-700 text-white;
+    }
+
+    @media (max-width: 640px) {
+        @apply p-1.5 text-sm;
+    }
+}
+
+.select {
+    @apply w-full p-2 border border-gray-300 rounded-md bg-white;
+
+    :global(.dark) & {
+        @apply border-gray-600 bg-gray-700 text-white;
+    }
+
+    @media (max-width: 640px) {
+        @apply p-1.5 text-sm;
+    }
+}
+
+.inputError {
+    @apply border-red-500;
+}
+
+.errorText {
+    @apply text-red-500 text-sm mt-1;
+}
+
+.helpText {
+    @apply text-gray-500 text-sm mt-1;
+
+    @media (max-width: 640px) {
+        @apply text-xs;
+    }
+}

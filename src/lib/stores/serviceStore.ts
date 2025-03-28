@@ -1,7 +1,8 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { Service } from '../types';
-import { v4 as uuidv4 } from 'uuid';
 
+// Интерфейс хранилища услуг
 interface ServiceStore {
     services: Service[];
     isLoading: boolean;
@@ -13,7 +14,13 @@ interface ServiceStore {
     getServiceById: (id: string) => Service | undefined;
 }
 
-// Mock data for development
+// Вспомогательная функция для обработки ошибок
+const handleApiError = (error: unknown, errorMessage: string): string => {
+    console.error(errorMessage, error);
+    return error instanceof Error ? error.message : 'Неизвестная ошибка';
+};
+
+// Генерация тестовых услуг для разработки
 const generateMockServices = (): Service[] => {
     return [
         {
@@ -49,65 +56,86 @@ const generateMockServices = (): Service[] => {
     ];
 };
 
-// Fix for Next.js hydration issue - creating store with initial state on client side
+// Создание хранилища с персистентностью данных
 const createStore = () => {
-    return create<ServiceStore>((set, get) => ({
-        services: [],
-        isLoading: false,
-        error: null,
+    return create<ServiceStore>()(
+        persist(
+            (set, get) => ({
+                services: [],
+                isLoading: false,
+                error: null,
 
-        fetchServices: async () => {
-            try {
-                set({ isLoading: true, error: null });
-                // Имитация задержки загрузки для демонстрации
-                await new Promise(resolve => setTimeout(resolve, 500));
-                set({ services: generateMockServices(), isLoading: false });
-            } catch (error) {
-                console.error('Ошибка при загрузке услуг:', error);
-                set({
-                    error: error instanceof Error ? error.message : 'Неизвестная ошибка при загрузке услуг',
-                    isLoading: false
-                });
+                // Загрузка списка услуг
+                fetchServices: async () => {
+                    try {
+                        set({ isLoading: true, error: null });
+
+                        // В будущем тут будет API запрос
+                        // Имитация задержки загрузки для демонстрации
+                        await new Promise(resolve => setTimeout(resolve, 300));
+
+                        // Если услуги уже загружены, не перезагружаем
+                        if (get().services.length === 0) {
+                            set({ services: generateMockServices(), isLoading: false });
+                        } else {
+                            set({ isLoading: false });
+                        }
+                    } catch (error) {
+                        set({
+                            error: handleApiError(error, 'Ошибка при загрузке услуг:'),
+                            isLoading: false
+                        });
+                    }
+                },
+
+                // Добавление новой услуги
+                addService: (serviceData) => {
+                    const id = crypto.randomUUID();
+                    const newService: Service = {
+                        ...serviceData,
+                        id,
+                    };
+
+                    set((state) => ({
+                        services: [...state.services, newService],
+                    }));
+
+                    return id;
+                },
+
+                // Обновление существующей услуги
+                updateService: (id, data) => {
+                    set((state) => ({
+                        services: state.services.map((service) =>
+                            service.id === id ? { ...service, ...data } : service
+                        ),
+                    }));
+                },
+
+                // Удаление услуги
+                deleteService: (id) => {
+                    set((state) => ({
+                        services: state.services.filter((service) => service.id !== id),
+                    }));
+                },
+
+                // Получение услуги по ID
+                getServiceById: (id) => {
+                    return get().services.find((service) => service.id === id);
+                },
+            }),
+            {
+                name: 'service-store', // Уникальное имя для localStorage
+                partialize: (state) => ({ services: state.services }), // Сохраняем только services
             }
-        },
-
-        addService: (serviceData) => {
-            const id = uuidv4();
-            const newService: Service = {
-                ...serviceData,
-                id,
-            };
-
-            set((state) => ({
-                services: [...state.services, newService],
-            }));
-
-            return id;
-        },
-
-        updateService: (id, data) => {
-            set((state) => ({
-                services: state.services.map((service) =>
-                    service.id === id ? { ...service, ...data } : service
-                ),
-            }));
-        },
-
-        deleteService: (id) => {
-            set((state) => ({
-                services: state.services.filter((service) => service.id !== id),
-            }));
-        },
-
-        getServiceById: (id) => {
-            return get().services.find((service) => service.id === id);
-        },
-    }));
+        )
+    );
 };
 
-// Ensure we only create one store instance in the client
+// Синглтон для хранилища
 let serviceStore: ReturnType<typeof createStore> | undefined;
 
+// Экспорт хука для использования хранилища с проверкой среды
 export const useServiceStore = typeof window !== "undefined"
     ? (() => {
         if (!serviceStore) {

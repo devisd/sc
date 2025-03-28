@@ -1,32 +1,55 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { OrderList } from '@/components/orders/OrderList';
-import { Box, Typography, Button, Container, CircularProgress, Alert } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import NewOrderModal from '@/components/orders/NewOrderModal';
-import { useOrderStore } from '@/lib/stores/orderStore';
+import { useState } from 'react';
+import dynamic from 'next/dynamic';
+import { Alert, Button, Container, Typography } from '@/components/ui/elements';
+import { AddIcon } from '@/components/ui/icons';
+import { OrderListSkeleton } from '@/components/ui/OrderListSkeleton';
+import styles from './page.module.scss';
 
+// Dynamically import client components with SSR disabled
+const OrderList = dynamic(() => import('@/components/orders/OrderList'), {
+    ssr: false,
+    loading: () => <OrderListSkeleton />
+});
+
+const NewOrderModal = dynamic(() => import('@/components/orders/NewOrderModal').then(mod => mod.NewOrderModal), {
+    ssr: false
+});
+
+const ErrorBoundary = dynamic(() => import('@/components/ui/ErrorBoundary').then(mod => mod.ErrorBoundary), {
+    ssr: false
+});
+
+/**
+ * Компонент страницы со списком заказов
+ * Отображает список заказов с возможностью создания нового заказа
+ */
 export default function OrdersPage() {
+    // Локальное состояние для управления модальным окном
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const { fetchOrders, isLoading, error } = useOrderStore();
+    const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        fetchOrders();
-    }, [fetchOrders]);
+    /**
+     * Открывает модальное окно создания нового заказа
+     */
+    const handleOpenModal = () => setIsModalOpen(true);
 
-    const handleOpenModal = () => {
-        setIsModalOpen(true);
-    };
+    /**
+     * Закрывает модальное окно создания нового заказа
+     */
+    const handleCloseModal = () => setIsModalOpen(false);
 
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
-    };
+    /**
+     * Повторная загрузка данных при ошибке
+     */
+    const handleErrorReset = () => setError(null);
 
     return (
-        <Container maxWidth="lg" sx={{ py: 4 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-                <Typography variant="h4" component="h1" fontWeight="bold">
+        <Container maxWidth="lg" className="py-4">
+            {/* Заголовок и кнопка создания */}
+            <div className={styles.header}>
+                <Typography variant="h3" component="h1" className={styles.title}>
                     Заказы
                 </Typography>
                 <Button
@@ -37,22 +60,21 @@ export default function OrdersPage() {
                 >
                     Новый заказ
                 </Button>
-            </Box>
+            </div>
 
+            {/* Отображение ошибки, если есть */}
             {error && (
-                <Alert severity="error" sx={{ mb: 4 }}>
+                <Alert severity="error" className={styles.errorAlert}>
                     {error}
                 </Alert>
             )}
 
-            {isLoading ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', my: 6 }}>
-                    <CircularProgress />
-                </Box>
-            ) : (
+            {/* Обработка ошибок рендеринга */}
+            <ErrorBoundary onReset={handleErrorReset}>
                 <OrderList />
-            )}
+            </ErrorBoundary>
 
+            {/* Модальное окно создания заказа */}
             <NewOrderModal open={isModalOpen} onClose={handleCloseModal} />
         </Container>
     );

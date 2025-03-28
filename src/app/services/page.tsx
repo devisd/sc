@@ -1,29 +1,42 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import {
-    Box, Typography, Button, Container,
-    Table, TableBody, TableCell, TableContainer,
-    TableHead, TableRow, Paper, IconButton,
-    Dialog, DialogTitle, DialogContent,
-    DialogActions, TextField, FormControl,
-    InputLabel, Select, MenuItem, SelectChangeEvent,
-    Stack, CircularProgress, Alert
-} from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
+import { useState, useEffect, useCallback } from 'react';
+
+import { AddIcon, EditIcon, DeleteIcon } from '@/components/ui/icons';
 import { useServiceStore } from '@/lib/stores/serviceStore';
 import { Service } from '@/lib/types';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
+import { Alert, Button, Container, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from '@/components/ui/elements';
+import styles from './page.module.scss';
 
+/**
+ * Интерфейс для формы добавления/редактирования услуг и запчастей
+ */
+interface ServiceFormData {
+    /** Название услуги или запчасти */
+    name: string;
+    /** Тип: услуга или запчасть */
+    type: 'service' | 'part';
+    /** Цена в рублях */
+    price: number;
+}
+
+/**
+ * Страница управления услугами и запчастями
+ * Позволяет просматривать, добавлять, редактировать и удалять услуги и запчасти
+ */
 export default function ServicesPage() {
+    // Получаем данные и методы из хранилища услуг
     const { services, isLoading, error, fetchServices, addService, updateService, deleteService } = useServiceStore();
+
+    // Локальные состояния страницы
     const [openDialog, setOpenDialog] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
     const [currentService, setCurrentService] = useState<Service | null>(null);
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<ServiceFormData>({
         name: '',
-        type: 'service' as 'service' | 'part',
+        type: 'service',
         price: 0
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -31,15 +44,31 @@ export default function ServicesPage() {
     const [serviceToDelete, setServiceToDelete] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [activeTab, setActiveTab] = useState(0);
 
-    // Загрузка услуг при монтировании компонента
+    /**
+     * Загрузка услуг и запчастей при монтировании компонента
+     */
     useEffect(() => {
         fetchServices();
     }, [fetchServices]);
 
-    const handleOpenDialog = (mode: 'add' | 'edit', service?: Service) => {
+    /**
+     * Обработчик переключения вкладок
+     */
+    const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
+        setActiveTab(newValue);
+    };
+
+    /**
+     * Открывает диалог добавления или редактирования
+     * @param mode Режим работы: добавление или редактирование
+     * @param service Данные услуги при редактировании
+     */
+    const handleOpenDialog = useCallback((mode: 'add' | 'edit', service?: Service) => {
         setIsEditMode(mode === 'edit');
         if (mode === 'edit' && service) {
+            // Заполняем форму данными редактируемой услуги
             setCurrentService(service);
             setFormData({
                 name: service.name,
@@ -47,22 +76,28 @@ export default function ServicesPage() {
                 price: service.price
             });
         } else {
+            // Сбрасываем форму для добавления новой услуги
             setCurrentService(null);
             setFormData({
                 name: '',
-                type: 'service',
+                type: activeTab === 0 ? 'service' : 'part',
                 price: 0
             });
         }
         setErrors({});
         setOpenDialog(true);
-    };
+    }, [activeTab]);
 
-    const handleCloseDialog = () => {
-        setOpenDialog(false);
-    };
+    /**
+     * Закрывает диалог добавления/редактирования
+     */
+    const handleCloseDialog = () => setOpenDialog(false);
 
-    const validateForm = () => {
+    /**
+     * Валидирует данные формы перед отправкой
+     * @returns Результат валидации (true если валидация успешна)
+     */
+    const validateForm = useCallback(() => {
         const newErrors: Record<string, string> = {};
 
         if (!formData.name.trim()) {
@@ -75,72 +110,93 @@ export default function ServicesPage() {
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
-    };
+    }, [formData]);
 
-    const handleSubmit = () => {
+    /**
+     * Обработчик отправки формы
+     */
+    const handleSubmit = useCallback(() => {
         if (validateForm()) {
             setIsSubmitting(true);
             try {
                 if (isEditMode && currentService) {
+                    // Обновляем существующую услугу
                     updateService(currentService.id, formData);
                 } else {
+                    // Добавляем новую услугу
                     addService(formData);
                 }
                 handleCloseDialog();
             } catch (error) {
-                console.error('Ошибка при сохранении услуги:', error);
+                console.error('Ошибка при сохранении:', error);
             } finally {
                 setIsSubmitting(false);
             }
         }
-    };
+    }, [validateForm, isEditMode, currentService, formData, updateService, addService]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }> | SelectChangeEvent) => {
+    /**
+     * Обработчик изменения полей формы
+     */
+    const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         if (!name) return;
 
-        setFormData({
-            ...formData,
+        setFormData(prev => ({
+            ...prev,
             [name]: name === 'price' ? Number(value) : value,
-        });
+        }));
 
         // Очищаем ошибку при редактировании поля
         if (errors[name]) {
-            setErrors({
-                ...errors,
-                [name]: '',
-            });
+            setErrors(prev => ({ ...prev, [name]: '' }));
         }
-    };
+    }, [errors]);
 
-    const handleConfirmDelete = (serviceId: string) => {
+    /**
+     * Показывает диалог подтверждения удаления
+     */
+    const handleConfirmDelete = useCallback((serviceId: string) => {
         setServiceToDelete(serviceId);
         setShowConfirmDelete(true);
-    };
+    }, []);
 
-    const handleDelete = () => {
+    /**
+     * Выполняет удаление услуги после подтверждения
+     */
+    const handleDelete = useCallback(() => {
         if (serviceToDelete) {
             setIsDeleting(true);
             try {
                 deleteService(serviceToDelete);
                 handleCancelDelete();
             } catch (error) {
-                console.error('Ошибка при удалении услуги:', error);
+                console.error('Ошибка при удалении:', error);
             } finally {
                 setIsDeleting(false);
             }
         }
-    };
+    }, [serviceToDelete, deleteService]);
 
+    /**
+     * Отменяет удаление услуги
+     */
     const handleCancelDelete = () => {
         setShowConfirmDelete(false);
         setServiceToDelete(null);
     };
 
+    // Фильтруем услуги/запчасти в зависимости от активной вкладки
+    const filteredServices = services.filter(service =>
+        (activeTab === 0 && service.type === 'service') ||
+        (activeTab === 1 && service.type === 'part')
+    );
+
     return (
-        <Container maxWidth="lg" sx={{ py: 4 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-                <Typography variant="h4" component="h1" fontWeight="bold">
+        <Container maxWidth="lg" className="py-4">
+            {/* Заголовок и кнопка добавления */}
+            <div className={styles.header}>
+                <Typography variant="h3" component="h1" className={styles.title}>
                     Услуги и запчасти
                 </Typography>
                 <Button
@@ -150,179 +206,159 @@ export default function ServicesPage() {
                     startIcon={<AddIcon />}
                     disabled={isSubmitting || isDeleting}
                 >
-                    Добавить
+                    Добавить {activeTab === 0 ? 'услугу' : 'запчасть'}
                 </Button>
-            </Box>
+            </div>
 
+            {/* Отображение ошибки, если есть */}
             {error && (
-                <Alert severity="error" sx={{ mb: 4 }}>
+                <Alert severity="error" className={styles.errorAlert}>
                     {error}
                 </Alert>
             )}
 
-            {isLoading ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', my: 6 }}>
-                    <CircularProgress />
-                </Box>
-            ) : (
-                <Stack spacing={4}>
-                    {/* Таблица услуг */}
-                    <Box>
-                        <Typography variant="h5" sx={{ mb: 2 }}>Услуги</Typography>
-                        <TableContainer component={Paper} elevation={2}>
-                            <Table>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Название</TableCell>
-                                        <TableCell>Цена (₽)</TableCell>
-                                        <TableCell align="right">Действия</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {services.filter(service => service.type === 'service').map(service => (
-                                        <TableRow key={service.id}>
-                                            <TableCell component="th" scope="row">
-                                                {service.name}
-                                            </TableCell>
-                                            <TableCell>{service.price} ₽</TableCell>
-                                            <TableCell align="right">
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        handleOpenDialog('edit', service);
-                                                    }}
-                                                >
-                                                    <EditIcon fontSize="small" />
-                                                </IconButton>
-                                                <IconButton
-                                                    size="small"
-                                                    color="error"
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        handleConfirmDelete(service.id);
-                                                    }}
-                                                >
-                                                    <DeleteIcon fontSize="small" />
-                                                </IconButton>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                    </Box>
+            {/* Обработка ошибок рендеринга */}
+            <ErrorBoundary>
+                {isLoading ? (
+                    <SkeletonLoader />
+                ) : (
+                    <div className="space-y-2">
+                        {/* Вкладки для переключения между услугами и запчастями */}
+                        <div className={styles.tabBar}>
+                            <div className={styles.tabsContainer}>
+                                <button
+                                    onClick={(e) => handleTabChange(e, 0)}
+                                    className={`${styles.tab} ${activeTab === 0 ? styles.tabActive : ''}`}
+                                >
+                                    Услуги
+                                </button>
+                                <button
+                                    onClick={(e) => handleTabChange(e, 1)}
+                                    className={`${styles.tab} ${activeTab === 1 ? styles.tabActive : ''}`}
+                                >
+                                    Запчасти
+                                </button>
+                            </div>
+                        </div>
 
-                    {/* Таблица запчастей */}
-                    <Box>
-                        <Typography variant="h5" sx={{ mb: 2 }}>Запчасти</Typography>
-                        <TableContainer component={Paper} elevation={2}>
-                            <Table>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Название</TableCell>
-                                        <TableCell>Цена (₽)</TableCell>
-                                        <TableCell align="right">Действия</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {services.filter(service => service.type === 'part').map(service => (
-                                        <TableRow key={service.id}>
-                                            <TableCell component="th" scope="row">
-                                                {service.name}
-                                            </TableCell>
-                                            <TableCell>{service.price} ₽</TableCell>
-                                            <TableCell align="right">
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        handleOpenDialog('edit', service);
-                                                    }}
-                                                >
-                                                    <EditIcon fontSize="small" />
-                                                </IconButton>
-                                                <IconButton
-                                                    size="small"
-                                                    color="error"
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        handleConfirmDelete(service.id);
-                                                    }}
-                                                >
-                                                    <DeleteIcon fontSize="small" />
-                                                </IconButton>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                    </Box>
-                </Stack>
-            )}
+                        {/* Таблица услуг/запчастей */}
+                        <div className={styles.tableContainer}>
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className={styles.tableHeader}>
+                                    <tr>
+                                        <th className={styles.tableHeaderCell}>
+                                            Название
+                                        </th>
+                                        <th className={styles.tableHeaderCell}>
+                                            Цена (₽)
+                                        </th>
+                                        <th className={styles.tableHeaderCellRight}>
+                                            Действия
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className={styles.tableBody}>
+                                    {filteredServices.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={3} className={styles.emptyMessage}>
+                                                Нет данных
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        filteredServices.map(service => (
+                                            <tr key={service.id} className={styles.tableRow}>
+                                                <td className={styles.tableCellName}>
+                                                    {service.name}
+                                                </td>
+                                                <td className={styles.tableCellPrice}>
+                                                    {service.price} ₽
+                                                </td>
+                                                <td className={styles.tableCellActions}>
+                                                    <button
+                                                        className={styles.editButton}
+                                                        onClick={() => handleOpenDialog('edit', service)}
+                                                    >
+                                                        <EditIcon className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        className={styles.deleteButton}
+                                                        onClick={() => handleConfirmDelete(service.id)}
+                                                    >
+                                                        <DeleteIcon className="w-4 h-4" />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+            </ErrorBoundary>
 
             {/* Диалог добавления/редактирования */}
-            <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+            <Dialog
+                open={openDialog}
+                onClose={handleCloseDialog}
+                maxWidth="sm"
+                fullWidth
+            >
                 <DialogTitle>
-                    {isEditMode ? 'Редактировать' : 'Добавить'} услугу/запчасть
+                    {isEditMode ? 'Редактировать' : 'Добавить'} {formData.type === 'service' ? 'услугу' : 'запчасть'}
                 </DialogTitle>
-                <DialogContent dividers>
-                    <Stack spacing={3} sx={{ mt: 1 }}>
-                        <TextField
-                            label="Наименование"
+                <DialogContent>
+                    <div className={styles.formControl}>
+                        <label htmlFor="name" className={styles.label}>Наименование</label>
+                        <input
+                            type="text"
+                            id="name"
                             name="name"
                             value={formData.name}
                             onChange={handleChange}
-                            fullWidth
-                            error={!!errors.name}
-                            helperText={errors.name}
-                            required
+                            className={`${styles.input} ${errors.name ? styles.inputError : ''}`}
                         />
-                        <FormControl fullWidth>
-                            <InputLabel id="type-label">Тип</InputLabel>
-                            <Select
-                                labelId="type-label"
-                                name="type"
-                                value={formData.type}
-                                label="Тип"
-                                onChange={handleChange}
-                            >
-                                <MenuItem value="service">Услуга</MenuItem>
-                                <MenuItem value="part">Запчасть</MenuItem>
-                            </Select>
-                        </FormControl>
-                        <TextField
-                            label="Стоимость (₽)"
-                            name="price"
+                        {errors.name && <div className={styles.errorText}>{errors.name}</div>}
+                    </div>
+
+                    <div className={styles.formControl}>
+                        <label htmlFor="type" className={styles.label}>Тип</label>
+                        <select
+                            id="type"
+                            name="type"
+                            value={formData.type}
+                            onChange={handleChange}
+                            className={styles.select}
+                        >
+                            <option value="service">Услуга</option>
+                            <option value="part">Запчасть</option>
+                        </select>
+                    </div>
+
+                    <div className={styles.formControl}>
+                        <label htmlFor="price" className={styles.label}>Цена (₽)</label>
+                        <input
                             type="number"
+                            id="price"
+                            name="price"
                             value={formData.price}
                             onChange={handleChange}
-                            fullWidth
-                            error={!!errors.price}
-                            helperText={errors.price}
-                            InputProps={{
-                                endAdornment: '₽',
-                                inputProps: { min: 0 }
-                            }}
+                            className={`${styles.input} ${errors.price ? styles.inputError : ''}`}
                         />
-                    </Stack>
+                        {errors.price && <div className={styles.errorText}>{errors.price}</div>}
+                    </div>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCloseDialog} color="primary" disabled={isSubmitting}>
+                    <Button onClick={handleCloseDialog} color="inherit">
                         Отмена
                     </Button>
                     <Button
                         onClick={handleSubmit}
-                        color="primary"
                         variant="contained"
+                        color="primary"
                         disabled={isSubmitting}
                     >
-                        {isSubmitting ? (
-                            <CircularProgress size={24} color="inherit" />
-                        ) : (
-                            isEditMode ? 'Сохранить' : 'Добавить'
-                        )}
+                        {isSubmitting ? 'Сохранение...' : 'Сохранить'}
                     </Button>
                 </DialogActions>
             </Dialog>
@@ -331,32 +367,24 @@ export default function ServicesPage() {
             <Dialog
                 open={showConfirmDelete}
                 onClose={handleCancelDelete}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-                maxWidth="xs"
             >
-                <DialogTitle id="alert-dialog-title">Подтверждение удаления</DialogTitle>
+                <DialogTitle>Удаление</DialogTitle>
                 <DialogContent>
                     <Typography>
-                        Вы уверены, что хотите удалить эту услугу/запчасть? Это действие нельзя отменить.
+                        Вы уверены, что хотите удалить этот элемент?
                     </Typography>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCancelDelete} color="primary" disabled={isDeleting}>
+                    <Button onClick={handleCancelDelete} color="inherit">
                         Отмена
                     </Button>
                     <Button
                         onClick={handleDelete}
-                        color="error"
                         variant="contained"
-                        autoFocus
+                        color="error"
                         disabled={isDeleting}
                     >
-                        {isDeleting ? (
-                            <CircularProgress size={24} color="inherit" />
-                        ) : (
-                            'Удалить'
-                        )}
+                        {isDeleting ? 'Удаление...' : 'Удалить'}
                     </Button>
                 </DialogActions>
             </Dialog>

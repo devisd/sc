@@ -1,0 +1,55 @@
+.backdrop {
+    @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4;
+}
+
+.dialog {
+    @apply bg-white rounded-lg shadow-xl relative;
+
+    :global(.dark) & {
+        @apply bg-gray-800 text-white;
+    }
+}
+
+.fullWidth {
+    @apply w-full;
+}
+
+.maxWidthXs {
+    @apply max-w-xs;
+}
+
+.maxWidthSm {
+    @apply max-w-sm;
+}
+
+.maxWidthMd {
+    @apply max-w-md;
+}
+
+.maxWidthLg {
+    @apply max-w-lg;
+}
+
+.maxWidthXl {
+    @apply max-w-xl;
+}
+
+.title {
+    @apply px-6 py-4 border-b border-gray-200 text-xl font-medium;
+
+    :global(.dark) & {
+        @apply border-gray-700;
+    }
+}
+
+.content {
+    @apply px-6 py-4 max-h-[calc(100vh-200px)] overflow-y-auto;
+}
+
+.actions {
+    @apply px-6 py-3 border-t border-gray-200 flex justify-end gap-2;
+
+    :global(.dark) & {
+        @apply border-gray-700;
+    }
+}

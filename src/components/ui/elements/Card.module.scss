@@ -1,0 +1,100 @@
+// Base card styles
+.card {
+    @apply bg-white overflow-hidden;
+
+    :global(.dark) & {
+        @apply bg-gray-800;
+    }
+}
+
+// Variant styles
+.outlined {
+    @apply border border-gray-200;
+
+    :global(.dark) & {
+        @apply border-gray-700;
+    }
+}
+
+.elevation {
+    @apply shadow;
+}
+
+.raised {
+    @apply shadow-lg;
+}
+
+// Shape styles
+.rounded {
+    @apply rounded-lg;
+}
+
+// Interactive styles
+.clickable {
+    @apply cursor-pointer hover:shadow-md transition-shadow;
+}
+
+// Card header styles
+.header {
+    @apply px-4 py-4 flex items-center;
+}
+
+.headerTitle {
+    @apply text-lg font-medium text-gray-900;
+
+    :global(.dark) & {
+        @apply text-white;
+    }
+}
+
+.headerSubheader {
+    @apply text-sm text-gray-500;
+
+    :global(.dark) & {
+        @apply text-gray-400;
+    }
+}
+
+.headerAvatar {
+    @apply mr-3;
+}
+
+.headerContent {
+    @apply flex-grow;
+}
+
+.headerAction {
+    @apply ml-auto;
+}
+
+// Card media styles
+.media {
+    @apply w-full object-cover;
+}
+
+// Card content styles
+.content {
+    @apply px-4 py-3 text-sm text-gray-700;
+
+    :global(.dark) & {
+        @apply text-gray-300;
+    }
+}
+
+// Card actions styles
+.actions {
+    @apply px-2 py-2 flex items-center;
+}
+
+.actionsSpaced {
+    @apply gap-2;
+}
+
+// Card action area styles
+.actionArea {
+    @apply cursor-pointer transition-colors hover:bg-gray-50 focus:bg-gray-100 focus:outline-none;
+
+    :global(.dark) & {
+        @apply hover:bg-gray-700 focus:bg-gray-600;
+    }
+}

@@ -1,0 +1,95 @@
+.alert {
+    @apply flex items-center p-4 mb-4 rounded;
+}
+
+.iconContainer {
+    @apply mr-3 flex-shrink-0;
+}
+
+.content {
+    @apply text-sm flex-grow;
+}
+
+.action {
+    @apply ml-auto mr-2;
+}
+
+// Варианты оформления
+.standard {
+    &.success {
+        @apply bg-green-50 text-green-800 border-l-4 border-green-500 dark:bg-green-900/30 dark:text-green-200 dark:border-green-500;
+    }
+
+    &.info {
+        @apply bg-blue-50 text-blue-800 border-l-4 border-blue-500 dark:bg-blue-900/30 dark:text-blue-200 dark:border-blue-500;
+    }
+
+    &.warning {
+        @apply bg-yellow-50 text-yellow-800 border-l-4 border-yellow-500 dark:bg-yellow-900/30 dark:text-yellow-200 dark:border-yellow-500;
+    }
+
+    &.error {
+        @apply bg-red-50 text-red-800 border-l-4 border-red-500 dark:bg-red-900/30 dark:text-red-200 dark:border-red-500;
+    }
+}
+
+.outlined {
+    &.success {
+        @apply bg-white text-green-800 border border-green-500 dark:bg-gray-900 dark:text-green-200;
+    }
+
+    &.info {
+        @apply bg-white text-blue-800 border border-blue-500 dark:bg-gray-900 dark:text-blue-200;
+    }
+
+    &.warning {
+        @apply bg-white text-yellow-800 border border-yellow-500 dark:bg-gray-900 dark:text-yellow-200;
+    }
+
+    &.error {
+        @apply bg-white text-red-800 border border-red-500 dark:bg-gray-900 dark:text-red-200;
+    }
+}
+
+.filled {
+    &.success {
+        @apply bg-green-600 text-white dark:bg-green-700;
+    }
+
+    &.info {
+        @apply bg-blue-600 text-white dark:bg-blue-700;
+    }
+
+    &.warning {
+        @apply bg-yellow-600 text-white dark:bg-yellow-700;
+    }
+
+    &.error {
+        @apply bg-red-600 text-white dark:bg-red-700;
+    }
+}
+
+// Стили для кнопки закрытия
+.closeButton {
+    @apply ml-auto -mx-1.5 p-1.5 rounded-full focus:outline-none focus:ring-2;
+
+    &.filled {
+        @apply hover:bg-white/10 focus:ring-white;
+    }
+
+    &.success:not(.filled) {
+        @apply hover:bg-green-100 focus:ring-green-400 dark:hover:bg-green-800;
+    }
+
+    &.info:not(.filled) {
+        @apply hover:bg-blue-100 focus:ring-blue-400 dark:hover:bg-blue-800;
+    }
+
+    &.warning:not(.filled) {
+        @apply hover:bg-yellow-100 focus:ring-yellow-400 dark:hover:bg-yellow-800;
+    }
+
+    &.error:not(.filled) {
+        @apply hover:bg-red-100 focus:ring-red-400 dark:hover:bg-red-800;
+    }
+}

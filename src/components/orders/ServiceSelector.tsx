@@ -1,17 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import {
-    Box, Button, Dialog, DialogTitle, DialogContent,
-    DialogActions, TextField, FormControl, InputLabel,
-    Select, MenuItem, Divider, Typography, IconButton,
-    List, ListItem, ListItemText,
-    Paper, Stack, SelectChangeEvent, CircularProgress
-} from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import DeleteIcon from '@mui/icons-material/Delete';
+import { AddIcon, DeleteIcon, CloseIcon } from '@/components/ui/icons';
 import { Service } from '@/lib/types';
 import { useServiceStore } from '@/lib/stores/serviceStore';
+import { Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select, TextField, Typography } from '../ui/elements';
+import styles from './ServiceSelector.module.scss';
+import clsx from 'clsx';
 
 interface ServiceSelectorProps {
     onAddService: (service: Omit<Service, 'id'>) => Promise<void>;
@@ -20,12 +15,97 @@ interface ServiceSelectorProps {
     orderServices: Service[];
 }
 
-export default function ServiceSelector({
+// Компонент кнопок управления количеством с использованием SCSS модуля
+const QuantityButton = ({ onClick, disabled, children }: { onClick: () => void, disabled: boolean, children: React.ReactNode }) => (
+    <button
+        onClick={onClick}
+        disabled={disabled}
+        className={styles.quantityButton}
+    >
+        {children}
+    </button>
+);
+
+// Компонент ServiceItem для отображения услуги или запчасти
+const ServiceItem = ({
+    item,
+    onRemove,
+    onChangeQuantity,
+    isLoading,
+    loadingId
+}: {
+    item: Service,
+    onRemove: (id: string) => Promise<void>,
+    onChangeQuantity: (id: string, quantity: number) => Promise<void>,
+    isLoading: boolean,
+    loadingId: string | null
+}) => {
+    const isItemLoading = loadingId === item.id;
+
+    return (
+        <li className={styles.serviceItem}>
+            <div className="flex flex-col relative pr-10">
+                <div className="flex justify-between items-start">
+                    <div className={styles.itemContent}>
+                        <p className={styles.itemTitle}>{item.name}</p>
+                        <p className={styles.itemPrice}>
+                            Цена: {item.price} ₽
+                        </p>
+                    </div>
+                    <div className="text-right">
+                        <p className={styles.itemTotal}>
+                            {item.price * (item.quantity || 1)} ₽
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex items-center mt-2 justify-between">
+                    <div className="flex items-center space-x-3">
+                        <QuantityButton
+                            onClick={() => onChangeQuantity(item.id, (item.quantity || 1) - 1)}
+                            disabled={isItemLoading || (item.quantity || 1) <= 1}
+                        >
+                            -
+                        </QuantityButton>
+
+                        <span className="w-8 text-center">
+                            {isItemLoading ?
+                                <span className={clsx(styles.spinner, "w-4 h-4 border-indigo-500 dark:border-indigo-400")}></span> :
+                                (item.quantity || 1)
+                            }
+                        </span>
+
+                        <QuantityButton
+                            onClick={() => onChangeQuantity(item.id, (item.quantity || 1) + 1)}
+                            disabled={isItemLoading}
+                        >
+                            +
+                        </QuantityButton>
+                    </div>
+
+                    <button
+                        className={styles.deleteButton}
+                        onClick={() => onRemove(item.id)}
+                        disabled={isItemLoading}
+                        aria-label="Удалить"
+                    >
+                        {isItemLoading ?
+                            <span className={clsx(styles.spinner, "w-5 h-5 border-red-500 dark:border-red-400")}></span> :
+                            <DeleteIcon className="w-5 h-5" />
+                        }
+                    </button>
+                </div>
+            </div>
+        </li>
+    );
+}
+
+export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
     onAddService,
     onRemoveService,
     onUpdateQuantity,
     orderServices
-}: ServiceSelectorProps) {
+}) => {
     const { services } = useServiceStore();
     const [open, setOpen] = useState(false);
     const [selectedService, setSelectedService] = useState('');
@@ -91,7 +171,7 @@ export default function ServiceSelector({
         }
     };
 
-    const handleServiceChange = (event: SelectChangeEvent) => {
+    const handleServiceChange = (event: React.ChangeEvent<HTMLSelectElement> | { target: { name?: string; value: string } }) => {
         setSelectedService(event.target.value);
     };
 
@@ -105,247 +185,179 @@ export default function ServiceSelector({
     const partsItems = orderServices.filter(s => s.type === 'part');
 
     return (
-        <>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+        <div className={styles.container}>
+            <div className="flex justify-end mb-4">
                 <Button
                     variant="outlined"
                     size="small"
                     startIcon={<AddIcon />}
                     onClick={handleOpen}
-                    id="service-add-button"
+                    className={styles.addButton}
                     disabled={isLoading}
                 >
                     Добавить
                 </Button>
-            </Box>
+            </div>
 
             {orderServices.length === 0 ? (
-                <Paper variant="outlined" sx={{ p: 3, textAlign: 'center' }}>
-                    <Typography color="text.secondary" component="div">
+                <div className={styles.emptyContainer}>
+                    <Typography color="secondary" component="div" className="text-gray-500 dark:text-gray-400">
                         Услуги и запчасти не добавлены
                     </Typography>
-                </Paper>
+                </div>
             ) : (
-                <Stack spacing={3}>
+                <div className="flex flex-col gap-6">
                     {servicesItems.length > 0 && (
-                        <Box>
-                            <Typography variant="subtitle2" component="div" sx={{ mb: 1 }}>Услуги</Typography>
-                            <List disablePadding>
+                        <div className={styles.section}>
+                            <div className={styles.sectionHeader}>
+                                <Typography variant="h3" component="div" className="font-medium text-gray-900 dark:text-white">
+                                    Услуги
+                                </Typography>
+                            </div>
+                            <ul className={styles.sectionList}>
                                 {servicesItems.map((service) => (
-                                    <ListItem
+                                    <ServiceItem
                                         key={service.id}
-                                        divider
-                                        secondaryAction={
-                                            <IconButton
-                                                edge="end"
-                                                aria-label="delete"
-                                                onClick={() => handleRemove(service.id)}
-                                                size="small"
-                                                disabled={loadingServiceId === service.id}
-                                            >
-                                                {loadingServiceId === service.id ?
-                                                    <CircularProgress size={16} /> :
-                                                    <DeleteIcon fontSize="small" />
-                                                }
-                                            </IconButton>
-                                        }
-                                        dense
-                                    >
-                                        <ListItemText
-                                            primary={
-                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', pr: 5 }}>
-                                                    <Typography component="div" variant="body2" sx={{ flexGrow: 1 }}>{service.name}</Typography>
-                                                    <Typography component="div" variant="body2" sx={{ fontWeight: 'medium' }}>
-                                                        {service.price} ₽
-                                                    </Typography>
-                                                </Box>
-                                            }
-                                            secondary={
-                                                <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                                                    <Button
-                                                        size="small"
-                                                        variant="outlined"
-                                                        onClick={() => handleQuantityChange(service.id, (service.quantity || 1) - 1)}
-                                                        disabled={(service.quantity || 1) <= 1 || loadingServiceId === service.id}
-                                                        sx={{ minWidth: '30px', px: 0 }}
-                                                    >
-                                                        -
-                                                    </Button>
-                                                    <Typography component="div" variant="body2" sx={{ mx: 1 }}>
-                                                        {loadingServiceId === service.id ?
-                                                            <CircularProgress size={14} sx={{ mx: 0.5 }} /> :
-                                                            (service.quantity || 1)
-                                                        }
-                                                    </Typography>
-                                                    <Button
-                                                        size="small"
-                                                        variant="outlined"
-                                                        onClick={() => handleQuantityChange(service.id, (service.quantity || 1) + 1)}
-                                                        disabled={loadingServiceId === service.id}
-                                                        sx={{ minWidth: '30px', px: 0 }}
-                                                    >
-                                                        +
-                                                    </Button>
-                                                    <Typography component="div" variant="body2" sx={{ ml: 2 }}>
-                                                        Итого: {service.price * (service.quantity || 1)} ₽
-                                                    </Typography>
-                                                </Box>
-                                            }
-                                            secondaryTypographyProps={{ component: 'div' }}
-                                        />
-                                    </ListItem>
+                                        item={service}
+                                        onRemove={handleRemove}
+                                        onChangeQuantity={handleQuantityChange}
+                                        isLoading={isLoading}
+                                        loadingId={loadingServiceId}
+                                    />
                                 ))}
-                            </List>
-                        </Box>
+                            </ul>
+                        </div>
                     )}
 
                     {partsItems.length > 0 && (
-                        <Box>
-                            <Typography variant="subtitle2" component="div" sx={{ mb: 1 }}>Запчасти</Typography>
-                            <List disablePadding>
+                        <div className={styles.section}>
+                            <div className={styles.sectionHeader}>
+                                <Typography variant="h3" component="div" className="font-medium text-gray-900 dark:text-white">
+                                    Запчасти
+                                </Typography>
+                            </div>
+                            <ul className={styles.sectionList}>
                                 {partsItems.map((part) => (
-                                    <ListItem
+                                    <ServiceItem
                                         key={part.id}
-                                        divider
-                                        secondaryAction={
-                                            <IconButton
-                                                edge="end"
-                                                aria-label="delete"
-                                                onClick={() => handleRemove(part.id)}
-                                                size="small"
-                                                disabled={loadingServiceId === part.id}
-                                            >
-                                                {loadingServiceId === part.id ?
-                                                    <CircularProgress size={16} /> :
-                                                    <DeleteIcon fontSize="small" />
-                                                }
-                                            </IconButton>
-                                        }
-                                        dense
-                                    >
-                                        <ListItemText
-                                            primary={
-                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', pr: 5 }}>
-                                                    <Typography component="div" variant="body2" sx={{ flexGrow: 1 }}>{part.name}</Typography>
-                                                    <Typography component="div" variant="body2" sx={{ fontWeight: 'medium' }}>
-                                                        {part.price} ₽
-                                                    </Typography>
-                                                </Box>
-                                            }
-                                            secondary={
-                                                <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                                                    <Button
-                                                        size="small"
-                                                        variant="outlined"
-                                                        onClick={() => handleQuantityChange(part.id, (part.quantity || 1) - 1)}
-                                                        disabled={(part.quantity || 1) <= 1 || loadingServiceId === part.id}
-                                                        sx={{ minWidth: '30px', px: 0 }}
-                                                    >
-                                                        -
-                                                    </Button>
-                                                    <Typography component="div" variant="body2" sx={{ mx: 1 }}>
-                                                        {loadingServiceId === part.id ?
-                                                            <CircularProgress size={14} sx={{ mx: 0.5 }} /> :
-                                                            (part.quantity || 1)
-                                                        }
-                                                    </Typography>
-                                                    <Button
-                                                        size="small"
-                                                        variant="outlined"
-                                                        onClick={() => handleQuantityChange(part.id, (part.quantity || 1) + 1)}
-                                                        disabled={loadingServiceId === part.id}
-                                                        sx={{ minWidth: '30px', px: 0 }}
-                                                    >
-                                                        +
-                                                    </Button>
-                                                    <Typography component="div" variant="body2" sx={{ ml: 2 }}>
-                                                        Итого: {part.price * (part.quantity || 1)} ₽
-                                                    </Typography>
-                                                </Box>
-                                            }
-                                            secondaryTypographyProps={{ component: 'div' }}
-                                        />
-                                    </ListItem>
+                                        item={part}
+                                        onRemove={handleRemove}
+                                        onChangeQuantity={handleQuantityChange}
+                                        isLoading={isLoading}
+                                        loadingId={loadingServiceId}
+                                    />
                                 ))}
-                            </List>
-                        </Box>
+                            </ul>
+                        </div>
                     )}
-                </Stack>
+                </div>
             )}
 
-            {/* Диалог добавления услуги/запчасти */}
-            <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-                <DialogTitle>Добавить услугу или запчасть</DialogTitle>
-                <DialogContent dividers>
-                    <Stack spacing={3} sx={{ mt: 1 }}>
-                        <FormControl fullWidth>
-                            <InputLabel id="service-select-label">Услуга или запчасть</InputLabel>
-                            <Select
-                                labelId="service-select-label"
-                                value={selectedService}
-                                label="Услуга или запчасть"
-                                onChange={handleServiceChange}
-                            >
-                                {availableServices.length === 0 ? (
-                                    <MenuItem disabled>Нет доступных услуг или запчастей</MenuItem>
-                                ) : (
-                                    [
-                                        <MenuItem key="placeholder" disabled value="">
-                                            <em>Выберите услугу или запчасть</em>
-                                        </MenuItem>,
-                                        <MenuItem key="service-header" disabled sx={{ opacity: 0.7 }}>
-                                            <Typography variant="subtitle2" component="span">Услуги</Typography>
-                                        </MenuItem>,
-                                        ...availableServices
-                                            .filter(s => s.type === 'service')
-                                            .map(service => (
-                                                <MenuItem key={service.id} value={service.id}>
-                                                    {service.name} - {service.price} ₽
-                                                </MenuItem>
-                                            )),
-                                        <Divider key="divider" />,
-                                        <MenuItem key="part-header" disabled sx={{ opacity: 0.7 }}>
-                                            <Typography variant="subtitle2" component="span">Запчасти</Typography>
-                                        </MenuItem>,
-                                        ...availableServices
-                                            .filter(s => s.type === 'part')
-                                            .map(part => (
-                                                <MenuItem key={part.id} value={part.id}>
-                                                    {part.name} - {part.price} ₽
-                                                </MenuItem>
-                                            ))
-                                    ]
-                                )}
-                            </Select>
-                        </FormControl>
+            <Dialog
+                open={open}
+                onClose={handleClose}
+                fullWidth
+                maxWidth="sm"
+            >
+                <DialogTitle>
+                    <div className="flex justify-between items-center">
+                        <Typography variant="h3" className={styles.modalTitle}>
+                            Добавить услугу или запчасть
+                        </Typography>
+                        <button
+                            onClick={handleClose}
+                            aria-label="Закрыть"
+                            className={styles.closeButton}
+                        >
+                            <CloseIcon className="w-5 h-5" />
+                        </button>
+                    </div>
+                </DialogTitle>
+                <DialogContent>
+                    <div className="px-2 py-2">
+                        {availableServices.length === 0 ? (
+                            <div className="text-center py-4">
+                                <Typography color="secondary" className="text-gray-500 dark:text-gray-400">
+                                    Все доступные услуги и запчасти уже добавлены
+                                </Typography>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <FormControl fullWidth>
+                                    <label htmlFor="service-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Выберите услугу или запчасть
+                                    </label>
+                                    <select
+                                        id="service-select"
+                                        value={selectedService}
+                                        onChange={(e) => handleServiceChange({ target: { name: 'selectedService', value: e.target.value } })}
+                                        className={styles.formInput}
+                                    >
+                                        <option value="">Выберите из списка</option>
+                                        <optgroup label="Услуги">
+                                            {availableServices
+                                                .filter(s => s.type === 'service')
+                                                .map(service => (
+                                                    <option key={service.id} value={service.id}>
+                                                        {service.name} - {service.price} ₽
+                                                    </option>
+                                                ))}
+                                        </optgroup>
+                                        <optgroup label="Запчасти">
+                                            {availableServices
+                                                .filter(s => s.type === 'part')
+                                                .map(part => (
+                                                    <option key={part.id} value={part.id}>
+                                                        {part.name} - {part.price} ₽
+                                                    </option>
+                                                ))}
+                                        </optgroup>
+                                    </select>
+                                </FormControl>
 
-                        {selectedService && (
-                            <TextField
-                                label="Количество"
-                                type="number"
-                                value={quantity}
-                                onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                                fullWidth
-                                InputProps={{ inputProps: { min: 1 } }}
-                            />
+                                <FormControl fullWidth>
+                                    <label htmlFor="quantity-input" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Количество
+                                    </label>
+                                    <input
+                                        id="quantity-input"
+                                        type="number"
+                                        min="1"
+                                        value={quantity}
+                                        onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                                        className={styles.formInput}
+                                    />
+                                </FormControl>
+                            </div>
                         )}
-                    </Stack>
+                    </div>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleClose} color="inherit" disabled={isLoading}>
-                        Отмена
-                    </Button>
-                    <Button
-                        onClick={handleSubmit}
-                        variant="contained"
-                        color="primary"
-                        disabled={!selectedService || isLoading}
-                        startIcon={isLoading ? <CircularProgress size={16} color="inherit" /> : undefined}
-                    >
-                        {isLoading ? 'Добавление...' : 'Добавить'}
-                    </Button>
+                    <div className={styles.modalActions}>
+                        <Button
+                            onClick={handleClose}
+                            variant="outlined"
+                            className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md text-sm"
+                        >
+                            Отмена
+                        </Button>
+                        <Button
+                            onClick={handleSubmit}
+                            variant="contained"
+                            color="primary"
+                            disabled={!selectedService || isLoading}
+                            className="px-4 py-2 bg-indigo-600 dark:bg-indigo-500 text-white rounded-md text-sm hover:bg-indigo-700 dark:hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isLoading ? (
+                                <span className="flex items-center">
+                                    <span className={clsx(styles.spinner, "w-4 h-4 mr-2 border-white")}></span>
+                                    Добавление...
+                                </span>
+                            ) : "Добавить"}
+                        </Button>
+                    </div>
                 </DialogActions>
             </Dialog>
-        </>
+        </div>
     );
-} 
+}; 

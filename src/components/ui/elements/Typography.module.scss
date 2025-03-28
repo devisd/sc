@@ -1,0 +1,157 @@
+// Variant styles
+.h1 {
+    @apply text-4xl font-light leading-tight;
+}
+
+.h2 {
+    @apply text-3xl font-light leading-tight;
+}
+
+.h3 {
+    @apply text-2xl font-normal leading-snug;
+}
+
+.h4 {
+    @apply text-xl font-normal leading-normal;
+}
+
+.h5 {
+    @apply text-lg font-medium leading-normal;
+}
+
+.h6 {
+    @apply text-base font-medium leading-relaxed;
+}
+
+.subtitle1 {
+    @apply text-base font-normal leading-relaxed;
+}
+
+.subtitle2 {
+    @apply text-sm font-medium leading-relaxed;
+}
+
+.body1 {
+    @apply text-base font-normal leading-relaxed;
+}
+
+.body2 {
+    @apply text-sm font-normal leading-relaxed;
+}
+
+.button {
+    @apply text-sm font-medium uppercase leading-normal;
+}
+
+.caption {
+    @apply text-xs font-normal leading-normal;
+}
+
+.overline {
+    @apply text-xs font-normal uppercase leading-normal tracking-wider;
+}
+
+// Alignment styles
+.left {
+    @apply text-left;
+}
+
+.center {
+    @apply text-center;
+}
+
+.right {
+    @apply text-right;
+}
+
+.justify {
+    @apply text-justify;
+}
+
+// Color styles
+.initial {
+    @apply text-inherit;
+}
+
+.inherit {
+    @apply text-inherit;
+}
+
+.primary {
+    @apply text-blue-600;
+
+    :global(.dark) & {
+        @apply text-blue-400;
+    }
+}
+
+.secondary {
+    @apply text-purple-600;
+
+    :global(.dark) & {
+        @apply text-purple-400;
+    }
+}
+
+.textPrimary {
+    @apply text-gray-900;
+
+    :global(.dark) & {
+        @apply text-white;
+    }
+}
+
+.textSecondary {
+    @apply text-gray-600;
+
+    :global(.dark) & {
+        @apply text-gray-400;
+    }
+}
+
+.error {
+    @apply text-red-600;
+
+    :global(.dark) & {
+        @apply text-red-400;
+    }
+}
+
+// Display styles
+.displayBlock {
+    @apply block;
+}
+
+.displayInline {
+    @apply inline;
+}
+
+// Font weight styles
+.fontLight {
+    @apply font-light;
+}
+
+.fontRegular {
+    @apply font-normal;
+}
+
+.fontMedium {
+    @apply font-medium;
+}
+
+.fontBold {
+    @apply font-bold;
+}
+
+// Additional styles
+.gutterBottom {
+    @apply mb-2;
+}
+
+.noWrap {
+    @apply whitespace-nowrap overflow-hidden text-ellipsis;
+}
+
+.paragraph {
+    @apply mb-4;
+}

@@ -1,0 +1,82 @@
+.appBar {
+    @apply z-10 w-full;
+}
+
+// Position classes
+.positionFixed {
+    @apply fixed top-0 left-0 right-0;
+}
+
+.positionAbsolute {
+    @apply absolute;
+}
+
+.positionSticky {
+    @apply sticky top-0;
+}
+
+.positionStatic {
+    @apply static;
+}
+
+.positionRelative {
+    @apply relative;
+}
+
+// Color classes
+.default {
+    @apply bg-white text-gray-900;
+
+    :global(.dark) & {
+        @apply bg-gray-800 text-white;
+    }
+}
+
+.primary {
+    @apply bg-blue-600 text-white;
+
+    :global(.dark) & {
+        @apply bg-blue-700;
+    }
+}
+
+.secondary {
+    @apply bg-pink-600 text-white;
+
+    :global(.dark) & {
+        @apply bg-pink-700;
+    }
+}
+
+.inherit {
+    @apply bg-transparent;
+}
+
+// Elevation classes
+.shadow0 {
+    @apply shadow-none;
+}
+
+.shadow1 {
+    @apply shadow-sm;
+}
+
+.shadow2 {
+    @apply shadow;
+}
+
+.shadow3 {
+    @apply shadow-md;
+}
+
+.shadow4 {
+    @apply shadow-lg;
+}
+
+.shadow6 {
+    @apply shadow-xl;
+}
+
+.shadow8 {
+    @apply shadow-2xl;
+}

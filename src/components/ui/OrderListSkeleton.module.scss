@@ -1,0 +1,27 @@
+.container {
+    @apply flex flex-col gap-4 mt-4;
+}
+
+.card {
+    @apply border border-gray-200 rounded-md overflow-hidden bg-white shadow-sm;
+
+    :global(.dark) & {
+        @apply border-gray-700 bg-gray-800;
+    }
+}
+
+.cardContent {
+    @apply p-4 flex flex-col gap-3;
+}
+
+.headerRow {
+    @apply flex justify-between items-center;
+}
+
+.detailsRow {
+    @apply flex justify-between mt-2;
+}
+
+.rightColumn {
+    @apply flex flex-col items-end gap-2 min-w-[150px];
+}

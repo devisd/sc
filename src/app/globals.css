@@ -1,60 +1,48 @@
-@import "tailwindcss/preflight";
+@tailwind base;
+@tailwind components;
 @tailwind utilities;
 
 :root {
-    --foreground-rgb: 0, 0, 0;
-    --background-rgb: 255, 255, 255;
+    --color-primary: 25 118 210;
+    --color-primary-light: 66 165 245;
+    --color-primary-dark: 21 101 192;
+
+    --color-secondary: 245 0 87;
+    --color-secondary-light: 255 64 129;
+    --color-secondary-dark: 197 17 98;
+
+    --color-error: 244 67 54;
+    --color-warning: 255 152 0;
+    --color-info: 33 150 243;
+    --color-success: 76 175 80;
+
+    --color-background: 255 255 255;
+    --color-surface: 250 250 250;
+    --color-text: 0 0 0;
+
+    /* Status colors */
+    --status-new: 191 219 254;
+    --status-in_progress: 254 240 138;
+    --status-waiting_parts: 233 213 255;
+    --status-ready: 74 222 128;
+    --status-completed: 22 163 74;
+    --status-canceled: 248 113 113;
 }
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --foreground-rgb: 255, 255, 255;
-        --background-rgb: 15, 23, 42;
-    }
-}
+.dark {
+    --color-primary: 33 150 243;
+    --color-primary-light: 79 195 247;
+    --color-primary-dark: 2 119 189;
 
-body {
-    color: rgb(var(--foreground-rgb));
-    background-color: rgb(var(--background-rgb));
-    margin: 0;
-}
+    --color-background: 15 23 42;
+    --color-surface: 30 41 59;
+    --color-text: 255 255 255;
 
-/* Общие стили */
-a {
-    text-decoration: none;
-    color: inherit;
-}
-
-/* Мы сохраняем эти классы для обратной совместимости с теми компонентами, 
-   которые еще не были перенесены на MUI */
-
-/* Status colors */
-.bg-status-new {
-    background-color: rgb(191 219 254);
-    /* blue-200 equivalent */
-}
-
-.bg-status-in_progress {
-    background-color: rgb(254 240 138);
-    /* yellow-200 equivalent */
-}
-
-.bg-status-waiting_parts {
-    background-color: rgb(233 213 255);
-    /* purple-200 equivalent */
-}
-
-.bg-status-ready {
-    background-color: rgb(74 222 128);
-    /* green-400 equivalent */
-}
-
-.bg-status-completed {
-    background-color: rgb(22 163 74);
-    /* green-600 equivalent */
-}
-
-.bg-status-canceled {
-    background-color: rgb(248 113 113);
-    /* red-400 equivalent */
+    /* Status colors - slightly adjusted for dark mode */
+    --status-new: 147 197 253;
+    --status-in_progress: 252 231 86;
+    --status-waiting_parts: 216 180 254;
+    --status-ready: 34 197 94;
+    --status-completed: 16 138 59;
+    --status-canceled: 239 68 68;
 }

@@ -1,283 +1,271 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
-import Link from 'next/link';
-import { Order, OrderStatus, ORDER_STATUS_LABELS, DEVICE_TYPE_LABELS, Service } from '@/lib/types';
-import { useOrderStore } from '@/lib/stores/orderStore';
-import { StatusBadge } from '@/components/orders/StatusBadge';
+import { useState, useEffect, useCallback } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { CancelIcon, EditIcon, SaveIcon } from '@/components/ui/icons';
 import {
-    Box, Container, Typography, Button, Grid, Card, CardContent,
-    CircularProgress, Alert, Divider, Breadcrumbs, Stack, TextField
-} from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import EditIcon from '@mui/icons-material/Edit';
-import SaveIcon from '@mui/icons-material/Save';
-import CancelIcon from '@mui/icons-material/Cancel';
-import ServiceSelector from '@/components/orders/ServiceSelector';
+    Alert, Badge, Button, Card, CardContent, CircularProgress, Container,
+    IconButton, Typography
+} from '@/components/ui/elements';
+import { useOrderStore } from '@/lib/stores/orderStore';
+import { Order, OrderService, OrderStatus } from '@/lib/types';
+import { formatDate, formatDateTime } from '@/lib/utils/formatters';
+import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from '@/lib/constants';
+import { ServiceSelector } from '@/components/order/ServiceSelector';
+import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
+import styles from './page.module.scss';
 
-export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> | { id: string } }) {
-    // Unwrap params using React.use()
-    const unwrappedParams = typeof params === 'object' && !('then' in params) ? params : use(params);
-    const { getOrderById, updateOrderStatus, updateOrder, isLoading, error, fetchOrders, addServiceToOrder, removeServiceFromOrder, updateServiceQuantity } = useOrderStore();
-    const [order, setOrder] = useState<Order | null>(null);
-    const [isClient, setIsClient] = useState(false);
+/**
+ * Страница детализации заказа
+ */
+export default function OrderDetailPage() {
+    const params = useParams<{ id: string }>();
+    const router = useRouter();
+    const orderId = params.id;
+
+    // Состояние заказа из хранилища
+    const {
+        orderDetails, isLoading, error,
+        fetchOrderDetails, updateOrderStatus, updateOrderComment,
+        addOrderService, removeOrderService, updateOrderServiceQuantity
+    } = useOrderStore();
+
+    // Локальное состояние для управления UI
     const [isEditingComment, setIsEditingComment] = useState(false);
     const [commentText, setCommentText] = useState('');
     const [isSavingComment, setIsSavingComment] = useState(false);
     const [isChangingStatus, setIsChangingStatus] = useState(false);
     const [serviceOperationInProgress, setServiceOperationInProgress] = useState(false);
 
+    // Загрузка данных заказа
     useEffect(() => {
-        setIsClient(true);
-        // Подгружаем все заказы, если они еще не загружены
-        fetchOrders().then(() => {
-            const foundOrder = getOrderById(unwrappedParams.id);
-            if (foundOrder) {
-                setOrder(foundOrder);
-                setCommentText(foundOrder.masterComment || '');
-            }
-        });
-    }, [getOrderById, unwrappedParams.id, fetchOrders]);
-
-    const handleStatusChange = async (status: OrderStatus) => {
-        if (isChangingStatus) return;
-
-        setIsChangingStatus(true);
-        try {
-            await updateOrderStatus(order!.id, status);
-            setOrder(prev => prev ? { ...prev, status } : null);
-        } catch (error) {
-            console.error('Ошибка при обновлении статуса:', error);
-        } finally {
-            setIsChangingStatus(false);
+        if (orderId) {
+            fetchOrderDetails(orderId);
         }
-    };
+    }, [orderId, fetchOrderDetails]);
 
-    // Calculate total cost
+    // Подготовка данных для отображения
+    const order = orderDetails as Order;
     const totalServicesPrice = order?.services.reduce((total, service) => {
-        const quantity = service.quantity || 1;
-        return total + (service.price * quantity);
-    }, 0) || 0;
+        return total + (service.price * (service.quantity || 1));
+    }, 0) ?? 0;
 
-    const handleStartEditComment = () => {
+    // Начать редактирование комментария
+    const handleStartEditComment = useCallback(() => {
+        setCommentText(order?.masterComment || '');
         setIsEditingComment(true);
-        setCommentText(order?.masterComment || '');
-    };
+    }, [order]);
 
-    const handleCancelEditComment = () => {
+    // Отмена редактирования комментария
+    const handleCancelEditComment = useCallback(() => {
         setIsEditingComment(false);
-        setCommentText(order?.masterComment || '');
-    };
+    }, []);
 
-    const handleSaveComment = async () => {
-        if (!order || isSavingComment) return;
+    // Сохранение комментария
+    const handleSaveComment = useCallback(async () => {
+        if (!order) return;
 
         setIsSavingComment(true);
         try {
-            await updateOrder(order.id, { masterComment: commentText });
-            setOrder(prev => prev ? { ...prev, masterComment: commentText } : null);
+            await updateOrderComment(order.id, commentText);
             setIsEditingComment(false);
         } catch (error) {
             console.error('Ошибка при обновлении комментария:', error);
         } finally {
             setIsSavingComment(false);
         }
-    };
+    }, [order, commentText, updateOrderComment]);
 
-    // Обертки для операций с услугами с индикацией загрузки
-    const handleAddService = async (service: Omit<Service, 'id'>) => {
-        if (!order || serviceOperationInProgress) return;
+    // Изменение статуса заказа
+    const handleStatusChange = useCallback(async (newStatus: OrderStatus) => {
+        if (!order || order.status === newStatus) return;
+
+        setIsChangingStatus(true);
+        try {
+            await updateOrderStatus(order.id, newStatus);
+        } catch (error) {
+            console.error('Ошибка при обновлении статуса:', error);
+        } finally {
+            setIsChangingStatus(false);
+        }
+    }, [order, updateOrderStatus]);
+
+    // Обработчики для управления услугами заказа
+    const handleAddService = useCallback(async (serviceId: string) => {
+        if (!order) return;
 
         setServiceOperationInProgress(true);
         try {
-            await addServiceToOrder(order.id, service);
+            await addOrderService(order.id, serviceId);
         } catch (error) {
             console.error('Ошибка при добавлении услуги:', error);
         } finally {
             setServiceOperationInProgress(false);
         }
-    };
+    }, [order, addOrderService]);
 
-    const handleRemoveService = async (serviceId: string) => {
-        if (!order || serviceOperationInProgress) return;
+    const handleRemoveService = useCallback(async (orderServiceId: string) => {
+        if (!order) return;
 
         setServiceOperationInProgress(true);
         try {
-            await removeServiceFromOrder(order.id, serviceId);
+            await removeOrderService(order.id, orderServiceId);
         } catch (error) {
             console.error('Ошибка при удалении услуги:', error);
         } finally {
             setServiceOperationInProgress(false);
         }
-    };
+    }, [order, removeOrderService]);
 
-    const handleUpdateQuantity = async (serviceId: string, quantity: number) => {
-        if (!order || serviceOperationInProgress) return;
+    const handleUpdateQuantity = useCallback(async (orderService: OrderService, newQuantity: number) => {
+        if (!order) return;
 
         setServiceOperationInProgress(true);
         try {
-            await updateServiceQuantity(order.id, serviceId, quantity);
+            await updateOrderServiceQuantity(order.id, orderService.id, newQuantity);
         } catch (error) {
-            console.error('Ошибка при обновлении количества услуги:', error);
+            console.error('Ошибка при изменении количества:', error);
         } finally {
             setServiceOperationInProgress(false);
         }
-    };
+    }, [order, updateOrderServiceQuantity]);
 
+    // Переход назад к списку заказов
+    const handleBack = useCallback(() => {
+        router.push('/orders');
+    }, [router]);
+
+    // Если данные загружаются, показываем скелетон
     if (isLoading) {
         return (
-            <Container maxWidth="lg" sx={{ py: 4 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
-                    <CircularProgress />
-                </Box>
+            <Container maxWidth="lg" className="py-4">
+                <SkeletonLoader />
             </Container>
         );
     }
 
-    if (error) {
-        return (
-            <Container maxWidth="lg" sx={{ py: 4 }}>
-                <Alert severity="error" sx={{ mb: 4 }}>
-                    {error}
-                </Alert>
-                <Button
-                    component={Link}
-                    href="/orders"
-                    startIcon={<ArrowBackIcon />}
-                    sx={{ mt: 2 }}
-                >
-                    Вернуться к списку заказов
-                </Button>
-            </Container>
-        );
-    }
-
+    // Если заказ не найден
     if (!order) {
         return (
-            <Container maxWidth="lg" sx={{ py: 4 }}>
-                <Card sx={{ mb: 2, bgcolor: 'error.light', p: 3 }}>
-                    <Typography variant="h5" color="error.dark" gutterBottom>
-                        Заказ не найден
-                    </Typography>
-                    <Typography color="error.dark" paragraph>
-                        Заказ с ID {unwrappedParams.id} не существует или был удален.
-                    </Typography>
-                    <Button
-                        component={Link}
-                        href="/orders"
-                        variant="outlined"
-                        color="error"
-                        startIcon={<ArrowBackIcon />}
-                    >
-                        Вернуться к списку заказов
-                    </Button>
-                </Card>
+            <Container maxWidth="lg" className="py-4">
+                <div className={styles.header}>
+                    <button onClick={handleBack}>
+                        <Typography>← Назад к заказам</Typography>
+                    </button>
+                </div>
+
+                <Alert severity="error" className={styles.errorAlert}>
+                    Заказ с ID {orderId} не найден
+                </Alert>
             </Container>
         );
     }
 
     return (
-        <Container maxWidth="lg" sx={{ py: 4 }}>
-            <Breadcrumbs sx={{ mb: 3 }}>
-                <Link href="/orders">
-                    <Typography
-                        color="text.secondary"
-                        sx={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}
-                    >
-                        <ArrowBackIcon fontSize="small" sx={{ mr: 0.5 }} />
-                        Заказы
-                    </Typography>
-                </Link>
-                <Typography color="text.primary">Заказ #{order.orderNumber}</Typography>
-            </Breadcrumbs>
+        <Container maxWidth="lg" className="py-4">
+            <div className={styles.header}>
+                <div className={styles.title}>
+                    <IconButton onClick={handleBack} className={styles.backButton}>
+                        <span className="text-xl">←</span>
+                    </IconButton>
+                    <div>
+                        <Typography variant="h1">
+                            Заказ #{order.orderNumber}
+                            <Badge
+                                className={styles.statusBadge}
+                                style={{ backgroundColor: ORDER_STATUS_COLORS[order.status] }}
+                            >
+                                {ORDER_STATUS_LABELS[order.status]}
+                            </Badge>
+                        </Typography>
+                        <Typography className={styles.subtitle}>
+                            от {formatDate(order.createdAt)}
+                        </Typography>
+                    </div>
+                </div>
+            </div>
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-                <Typography variant="h4" component="h1" fontWeight="bold">
-                    Заказ #{order.orderNumber}
-                </Typography>
-                <StatusBadge status={order.status} />
-            </Box>
+            {error && (
+                <Alert severity="error" className={styles.errorAlert}>
+                    {error}
+                </Alert>
+            )}
 
-            <Grid container spacing={3} sx={{ mb: 4 }}>
-                <Grid item xs={12} md={4}>
-                    <Card elevation={1}>
-                        <CardContent>
-                            <Typography variant="h6" gutterBottom>Информация о клиенте</Typography>
-                            <Divider sx={{ mb: 2 }} />
-                            <Stack spacing={1}>
-                                <Box>
-                                    <Typography variant="body2" color="text.secondary">ФИО:</Typography>
-                                    <Typography variant="body1">{order.client.fullName}</Typography>
-                                </Box>
-                                <Box>
-                                    <Typography variant="body2" color="text.secondary">Телефон:</Typography>
-                                    <Typography variant="body1">{order.client.phone}</Typography>
-                                </Box>
-                                <Box sx={{ mt: 1 }}>
-                                    <Typography variant="body2" color="text.secondary">
-                                        Создан: {isClient ? new Date(order.createdAt).toLocaleString() : ''}
-                                    </Typography>
-                                </Box>
-                            </Stack>
-                        </CardContent>
-                    </Card>
-                </Grid>
+            <div className={styles.orderInfoContainer}>
+                <Card className={styles.infoCard}>
+                    <CardContent>
+                        <Typography variant="h3" className={styles.sectionTitle}>Информация о клиенте</Typography>
+                        <hr className={styles.sectionDivider} />
+                        <div className="space-y-2">
+                            <div className={styles.detailItem}>
+                                <Typography color="secondary" className={styles.detailLabel}>Имя:</Typography>
+                                <Typography>{order.clientName}</Typography>
+                            </div>
+                            <div className={styles.detailItem}>
+                                <Typography color="secondary" className={styles.detailLabel}>Телефон:</Typography>
+                                <Typography>{order.clientPhone}</Typography>
+                            </div>
+                            <div className={styles.detailItem}>
+                                <Typography color="secondary" className={styles.detailLabel}>Email:</Typography>
+                                <Typography>{order.clientEmail || 'Не указан'}</Typography>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
 
-                <Grid item xs={12} md={4}>
-                    <Card elevation={1}>
-                        <CardContent>
-                            <Typography variant="h6" gutterBottom>Информация об устройстве</Typography>
-                            <Divider sx={{ mb: 2 }} />
-                            <Stack spacing={1}>
-                                <Box>
-                                    <Typography variant="body2" color="text.secondary">Тип:</Typography>
-                                    <Typography variant="body1">{DEVICE_TYPE_LABELS[order.deviceType]}</Typography>
-                                </Box>
-                                <Box>
-                                    <Typography variant="body2" color="text.secondary">Модель:</Typography>
-                                    <Typography variant="body1">{order.model}</Typography>
-                                </Box>
-                                <Box sx={{ mt: 1 }}>
-                                    <Typography variant="body2" color="text.secondary">Описание проблемы:</Typography>
-                                    <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
-                                        {order.problemDescription}
-                                    </Typography>
-                                </Box>
-                            </Stack>
-                        </CardContent>
-                    </Card>
-                </Grid>
+                <Card className={styles.infoCard}>
+                    <CardContent>
+                        <Typography variant="h3" className={styles.sectionTitle}>Информация об устройстве</Typography>
+                        <hr className={styles.sectionDivider} />
+                        <div className="space-y-2">
+                            <div className={styles.detailItem}>
+                                <Typography color="secondary" className={styles.detailLabel}>Тип:</Typography>
+                                <Typography>{order.deviceType}</Typography>
+                            </div>
+                            <div className={styles.detailItem}>
+                                <Typography color="secondary" className={styles.detailLabel}>Модель:</Typography>
+                                <Typography>{order.deviceModel}</Typography>
+                            </div>
+                            <div className={styles.detailItem}>
+                                <Typography color="secondary" className={styles.detailLabel}>Серийный номер:</Typography>
+                                <Typography>{order.serialNumber || 'Не указан'}</Typography>
+                            </div>
+                            <div className={styles.detailItem}>
+                                <Typography color="secondary" className={styles.detailLabel}>Описание проблемы:</Typography>
+                                <Typography>{order.issueDescription}</Typography>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
 
-                <Grid item xs={12} md={4}>
-                    <Card elevation={1}>
-                        <CardContent>
-                            <Typography variant="h6" gutterBottom>Финансовая информация</Typography>
-                            <Divider sx={{ mb: 2 }} />
-                            <Stack spacing={1}>
-                                <Box>
-                                    <Typography variant="body2" color="text.secondary">Предоплата:</Typography>
-                                    <Typography variant="body1">{order.prepayment} ₽</Typography>
-                                </Box>
-                                <Box>
-                                    <Typography variant="body2" color="text.secondary">Стоимость услуг:</Typography>
-                                    <Typography variant="body1">{totalServicesPrice} ₽</Typography>
-                                </Box>
-                                <Box sx={{ mt: 1 }}>
-                                    <Typography variant="body2" color="text.secondary">К оплате:</Typography>
-                                    <Typography variant="h6" color="primary.main">
-                                        {Math.max(0, totalServicesPrice - order.prepayment)} ₽
-                                    </Typography>
-                                </Box>
-                            </Stack>
-                        </CardContent>
-                    </Card>
-                </Grid>
-            </Grid>
+                <Card className={styles.infoCard}>
+                    <CardContent>
+                        <Typography variant="h3" className={styles.sectionTitle}>Финансовая информация</Typography>
+                        <hr className={styles.sectionDivider} />
+                        <div className={styles.financialSummary}>
+                            <div className={styles.detailItem}>
+                                <Typography color="secondary" className={styles.detailLabel}>Предоплата:</Typography>
+                                <Typography>{order.prepayment} ₽</Typography>
+                            </div>
+                            <div className={styles.detailItem}>
+                                <Typography color="secondary" className={styles.detailLabel}>Стоимость услуг:</Typography>
+                                <Typography>{totalServicesPrice} ₽</Typography>
+                            </div>
+                            <div className="mt-1">
+                                <Typography color="secondary" className={styles.detailLabel}>К оплате:</Typography>
+                                <Typography variant="h3" color="primary" className={styles.totalPayment}>
+                                    {Math.max(0, totalServicesPrice - order.prepayment)} ₽
+                                </Typography>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
 
-            <Card elevation={1} sx={{ mb: 4 }}>
+            <Card className="mb-4">
                 <CardContent>
-                    <Typography variant="h6" gutterBottom>Услуги и запчасти</Typography>
-                    <Divider sx={{ mb: 2 }} />
+                    <Typography variant="h3" className={styles.sectionTitle}>Услуги и запчасти</Typography>
+                    <hr className={styles.sectionDivider} />
                     <ServiceSelector
                         orderServices={order.services}
                         onAddService={handleAddService}
@@ -285,18 +273,18 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                         onUpdateQuantity={handleUpdateQuantity}
                     />
                     {serviceOperationInProgress && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', mt: 2, color: 'text.secondary', justifyContent: 'center' }}>
-                            <CircularProgress size={20} sx={{ mr: 1 }} />
-                            <Typography variant="body2">Обработка операции...</Typography>
-                        </Box>
+                        <div className={styles.loadingIndicator}>
+                            <CircularProgress size={20} className={styles.loadingSpinner} />
+                            <Typography color="secondary">Обработка операции...</Typography>
+                        </div>
                     )}
                 </CardContent>
             </Card>
 
-            <Card elevation={1} sx={{ mb: 4 }}>
+            <Card className="mb-4">
                 <CardContent>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                        <Typography variant="h6" gutterBottom sx={{ mb: 0 }}>Комментарий мастера</Typography>
+                    <div className={styles.commentHeader}>
+                        <Typography variant="h3" className="mb-0">Комментарий мастера</Typography>
                         {!isEditingComment && (
                             <Button
                                 variant="outlined"
@@ -307,23 +295,19 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                                 Редактировать
                             </Button>
                         )}
-                    </Box>
-                    <Divider sx={{ mb: 2 }} />
+                    </div>
+                    <hr className={styles.sectionDivider} />
 
                     {isEditingComment ? (
                         <>
-                            <TextField
-                                fullWidth
-                                multiline
-                                rows={4}
-                                variant="outlined"
+                            <textarea
+                                className={styles.commentTextarea}
                                 value={commentText}
                                 onChange={(e) => setCommentText(e.target.value)}
                                 placeholder="Введите комментарий мастера"
-                                sx={{ mb: 2 }}
                                 disabled={isSavingComment}
                             />
-                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                            <div className={styles.buttonGroup}>
                                 <Button
                                     variant="outlined"
                                     color="inherit"
@@ -337,26 +321,26 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                                     variant="contained"
                                     color="primary"
                                     onClick={handleSaveComment}
-                                    startIcon={isSavingComment ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />}
+                                    startIcon={isSavingComment ? <CircularProgress size={20} /> : <SaveIcon />}
                                     disabled={isSavingComment}
                                 >
                                     {isSavingComment ? 'Сохранение...' : 'Сохранить'}
                                 </Button>
-                            </Box>
+                            </div>
                         </>
                     ) : (
-                        <Typography sx={{ whiteSpace: 'pre-line' }}>
+                        <Typography className={styles.commentText}>
                             {order?.masterComment || 'Комментарий отсутствует'}
                         </Typography>
                     )}
                 </CardContent>
             </Card>
 
-            <Card elevation={1} sx={{ mb: 4 }}>
+            <Card className="mb-4">
                 <CardContent>
-                    <Typography variant="h6" gutterBottom>Изменить статус</Typography>
-                    <Divider sx={{ mb: 2 }} />
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                    <Typography variant="h3" className={styles.sectionTitle}>Изменить статус</Typography>
+                    <hr className={styles.sectionDivider} />
+                    <div className={styles.statusButtonsContainer}>
                         {(Object.keys(ORDER_STATUS_LABELS) as OrderStatus[]).map((status) => (
                             <Button
                                 key={status}
@@ -371,17 +355,17 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                                 onClick={() => handleStatusChange(status)}
                                 disabled={order.status === status || isChangingStatus}
                                 size="small"
-                                startIcon={isChangingStatus && order.status !== status ? <CircularProgress size={16} color="inherit" /> : undefined}
+                                startIcon={isChangingStatus && order.status !== status ? <CircularProgress size={16} /> : undefined}
                             >
                                 {ORDER_STATUS_LABELS[status]}
                             </Button>
                         ))}
-                    </Box>
+                    </div>
                     {isChangingStatus && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', mt: 2, color: 'text.secondary' }}>
-                            <CircularProgress size={16} sx={{ mr: 1 }} />
-                            <Typography variant="body2">Обновление статуса...</Typography>
-                        </Box>
+                        <div className={styles.loadingIndicator}>
+                            <CircularProgress size={16} className={styles.loadingSpinner} />
+                            <Typography color="secondary">Обновление статуса...</Typography>
+                        </div>
                     )}
                 </CardContent>
             </Card>

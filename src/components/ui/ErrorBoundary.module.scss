@@ -1,0 +1,35 @@
+.errorContainer {
+    @apply mt-6 p-4 rounded border border-red-300 bg-red-100 text-red-800;
+
+    :global(.dark) & {
+        @apply border-red-800 bg-red-900 text-red-200;
+    }
+}
+
+.errorContent {
+    @apply flex flex-col items-start;
+}
+
+.errorTitle {
+    @apply text-xl font-semibold mb-2;
+}
+
+.errorMessage {
+    @apply text-sm mb-4;
+}
+
+.errorButton {
+    @apply py-1.5 px-3 bg-red-200 border-none rounded text-sm cursor-pointer text-red-800 font-medium transition-colors;
+
+    &:hover {
+        @apply bg-red-300;
+    }
+
+    :global(.dark) & {
+        @apply bg-red-800 text-red-200;
+
+        &:hover {
+            @apply bg-red-700;
+        }
+    }
+}

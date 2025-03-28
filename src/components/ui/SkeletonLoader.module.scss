@@ -1,0 +1,72 @@
+.skeleton {
+    @apply block bg-gray-200 relative overflow-hidden;
+
+    :global(.dark) & {
+        @apply bg-gray-700;
+    }
+}
+
+.skeletonText {
+    @apply rounded transform scale-y-[60%] mt-0 mb-3;
+}
+
+.skeletonCircular {
+    @apply rounded-full;
+}
+
+.skeletonRectangular {
+    @apply rounded-none;
+}
+
+.skeletonRounded {
+    @apply rounded;
+}
+
+.skeletonPulse {
+    @apply animate-pulse;
+}
+
+.skeletonWave {
+    @apply overflow-hidden relative;
+
+    &::after {
+        content: "";
+        @apply absolute inset-0;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+        animation: wave 1.6s linear 0.5s infinite;
+    }
+
+    :global(.dark) &::after {
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    }
+}
+
+@keyframes wave {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.skeletonContainer {
+    @apply w-full py-4;
+}
+
+.skeletonCard {
+    @apply border border-gray-200 rounded p-4 shadow-sm bg-white mb-4;
+
+    :global(.dark) & {
+        @apply border-gray-700 bg-gray-800;
+    }
+}
+
+.skeletonStack {
+    @apply flex flex-col gap-3;
+}
+
+.skeletonRow {
+    @apply flex gap-3;
+}

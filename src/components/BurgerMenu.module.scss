@@ -1,0 +1,94 @@
+.burgerMenuContainer {
+    @apply relative;
+    display: none;
+
+    @media (max-width: 992px) {
+        display: block;
+    }
+}
+
+// Стили для кнопки бургер-меню
+.burgerButton {
+    @apply flex flex-col justify-center items-center w-10 h-10 relative z-50;
+    gap: 6px;
+
+    &.active {
+        .burgerLine {
+            &:nth-child(1) {
+                transform: translateY(8px) rotate(45deg);
+            }
+
+            &:nth-child(2) {
+                opacity: 0;
+            }
+
+            &:nth-child(3) {
+                transform: translateY(-8px) rotate(-45deg);
+            }
+        }
+    }
+}
+
+// Линии бургер-меню
+.burgerLine {
+    @apply w-6 h-0.5 bg-gray-800 transition-all duration-300;
+
+    :global(.dark) & {
+        @apply bg-white;
+    }
+}
+
+// Затемнение фона при открытом меню
+.menuOverlay {
+    @apply fixed inset-0 bg-black opacity-0 invisible transition-opacity duration-300 z-40;
+
+    &.open {
+        @apply opacity-50 visible;
+    }
+}
+
+// Контент выпадающего меню
+.menuContent {
+    @apply fixed top-0 right-0 h-full w-64 bg-white shadow-xl transform translate-x-full transition-transform duration-300 z-40 overflow-y-auto;
+
+    :global(.dark) & {
+        @apply bg-gray-800;
+    }
+
+    &.open {
+        @apply translate-x-0;
+    }
+}
+
+// Навигация в меню
+.menuNav {
+    @apply h-full pt-16 pb-6 px-4 flex flex-col;
+}
+
+// Список пунктов меню
+.menuList {
+    @apply flex flex-col space-y-1 mb-6;
+}
+
+// Пункт меню
+.menuItem {
+    @apply w-full;
+}
+
+// Ссылка в пункте меню
+.menuLink {
+    @apply block w-full py-3 px-4 text-gray-800 rounded-md font-medium hover:bg-gray-100 transition-colors;
+
+    :global(.dark) & {
+        @apply text-white hover:bg-gray-700;
+    }
+}
+
+// Контейнер для компонента авторизации
+.authContainer {
+    @apply mt-auto border-t border-gray-200 pt-4;
+
+    :global(.dark) & {
+        @apply border-gray-700;
+    }
+}

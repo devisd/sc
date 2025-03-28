@@ -1,0 +1,231 @@
+// Base button styles
+.button {
+    @apply inline-flex items-center justify-center rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2;
+
+    @media (max-width: 640px) {
+        @apply text-sm focus:ring-1 focus:ring-offset-1;
+    }
+}
+
+// Size variants
+.small {
+    @apply text-xs px-2.5 py-1.5 rounded;
+
+    @media (max-width: 640px) {
+        @apply px-2 py-1;
+    }
+}
+
+.medium {
+    @apply text-sm px-4 py-2;
+
+    @media (max-width: 640px) {
+        @apply px-3 py-1.5;
+    }
+}
+
+.large {
+    @apply text-base px-6 py-2.5;
+
+    @media (max-width: 640px) {
+        @apply text-sm px-4 py-2;
+    }
+}
+
+// Full width option
+.fullWidth {
+    @apply w-full;
+}
+
+// Disabled state
+.disabled {
+    @apply cursor-not-allowed opacity-60;
+}
+
+// Text button variants
+.textPrimary {
+    @apply text-blue-600 hover:bg-blue-50 focus:ring-blue-500;
+
+    :global(.dark) & {
+        @apply text-blue-400 hover:bg-blue-900/20;
+    }
+}
+
+.textSecondary {
+    @apply text-purple-600 hover:bg-purple-50 focus:ring-purple-500;
+
+    :global(.dark) & {
+        @apply text-purple-400 hover:bg-purple-900/20;
+    }
+}
+
+.textSuccess {
+    @apply text-green-600 hover:bg-green-50 focus:ring-green-500;
+
+    :global(.dark) & {
+        @apply text-green-400 hover:bg-green-900/20;
+    }
+}
+
+.textError {
+    @apply text-red-600 hover:bg-red-50 focus:ring-red-500;
+
+    :global(.dark) & {
+        @apply text-red-400 hover:bg-red-900/20;
+    }
+}
+
+.textInfo {
+    @apply text-sky-600 hover:bg-sky-50 focus:ring-sky-500;
+
+    :global(.dark) & {
+        @apply text-sky-400 hover:bg-sky-900/20;
+    }
+}
+
+.textWarning {
+    @apply text-amber-600 hover:bg-amber-50 focus:ring-amber-500;
+
+    :global(.dark) & {
+        @apply text-amber-400 hover:bg-amber-900/20;
+    }
+}
+
+.textInherit {
+    @apply text-inherit hover:bg-gray-100 focus:ring-gray-500;
+
+    :global(.dark) & {
+        @apply hover:bg-gray-800;
+    }
+}
+
+// Outlined button variants
+.outlinedPrimary {
+    @apply border border-blue-500 text-blue-600 hover:bg-blue-50 focus:ring-blue-500;
+
+    :global(.dark) & {
+        @apply border-blue-400 text-blue-400 hover:bg-blue-900/20;
+    }
+}
+
+.outlinedSecondary {
+    @apply border border-purple-500 text-purple-600 hover:bg-purple-50 focus:ring-purple-500;
+
+    :global(.dark) & {
+        @apply border-purple-400 text-purple-400 hover:bg-purple-900/20;
+    }
+}
+
+.outlinedSuccess {
+    @apply border border-green-500 text-green-600 hover:bg-green-50 focus:ring-green-500;
+
+    :global(.dark) & {
+        @apply border-green-400 text-green-400 hover:bg-green-900/20;
+    }
+}
+
+.outlinedError {
+    @apply border border-red-500 text-red-600 hover:bg-red-50 focus:ring-red-500;
+
+    :global(.dark) & {
+        @apply border-red-400 text-red-400 hover:bg-red-900/20;
+    }
+}
+
+.outlinedInfo {
+    @apply border border-sky-500 text-sky-600 hover:bg-sky-50 focus:ring-sky-500;
+
+    :global(.dark) & {
+        @apply border-sky-400 text-sky-400 hover:bg-sky-900/20;
+    }
+}
+
+.outlinedWarning {
+    @apply border border-amber-500 text-amber-600 hover:bg-amber-50 focus:ring-amber-500;
+
+    :global(.dark) & {
+        @apply border-amber-400 text-amber-400 hover:bg-amber-900/20;
+    }
+}
+
+.outlinedInherit {
+    @apply border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-gray-500;
+
+    :global(.dark) & {
+        @apply border-gray-600 text-gray-300 hover:bg-gray-800;
+    }
+}
+
+// Contained button variants
+.containedPrimary {
+    @apply bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500;
+
+    :global(.dark) & {
+        @apply bg-blue-500 hover:bg-blue-600;
+    }
+}
+
+.containedSecondary {
+    @apply bg-purple-600 text-white hover:bg-purple-700 focus:ring-purple-500;
+
+    :global(.dark) & {
+        @apply bg-purple-500 hover:bg-purple-600;
+    }
+}
+
+.containedSuccess {
+    @apply bg-green-600 text-white hover:bg-green-700 focus:ring-green-500;
+
+    :global(.dark) & {
+        @apply bg-green-500 hover:bg-green-600;
+    }
+}
+
+.containedError {
+    @apply bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
+
+    :global(.dark) & {
+        @apply bg-red-500 hover:bg-red-600;
+    }
+}
+
+.containedInfo {
+    @apply bg-sky-600 text-white hover:bg-sky-700 focus:ring-sky-500;
+
+    :global(.dark) & {
+        @apply bg-sky-500 hover:bg-sky-600;
+    }
+}
+
+.containedWarning {
+    @apply bg-amber-600 text-white hover:bg-amber-700 focus:ring-amber-500;
+
+    :global(.dark) & {
+        @apply bg-amber-500 hover:bg-amber-600;
+    }
+}
+
+.containedInherit {
+    @apply bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500;
+
+    :global(.dark) & {
+        @apply bg-gray-500 hover:bg-gray-600;
+    }
+}
+
+// Icon styles
+.startIcon {
+    @apply mr-2;
+
+    @media (max-width: 640px) {
+        @apply mr-1.5 scale-90;
+    }
+}
+
+.endIcon {
+    @apply ml-2;
+
+    @media (max-width: 640px) {
+        @apply ml-1.5 scale-90;
+    }
+}
